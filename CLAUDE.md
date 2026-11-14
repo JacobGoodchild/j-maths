@@ -30,6 +30,12 @@ Next: polish. See "Polish list" at the bottom.
 - Pure maths lives in separate modules so it can be tested in node: `sims/*/series.js`, `riemann.js`, `mat.js`, `nr.js`, `assets/js/kit/{funcs,rng}.js`. `assets/js/kit/scene3d.js` is the shared three.js wrapper (volumes + matrices 3D); pages that use it need the importmap.
 - `tools/`: `shot.mjs` (screenshots a sim in light + dark, prints console errors: `node tools/shot.mjs sims/unit-circle tab1,tab2`; images go to /tmp/claude-0/shots/), `previews*.mjs`, and `test-*.mjs` (run them all with `for f in tools/test-*.mjs; do node $f; done`).
 
+## Testing
+- `sh tools/test-all.sh` — pure maths (series coefficients vs known results, Riemann rules vs hand calculations and exact integrals, binomial pmf and samplers, matrix/eigen maths in 2D and 3D, Newton iterates vs hand calculation, volumes, ODE solvers and their orders of convergence, complex roots/Euler's formula).
+- `node tools/monkey.mjs sims/<id>` — clicks every dropdown option, slider extreme, toggle, button, drag and wheel in every tab and reports console errors (volumes takes a few minutes in software WebGL).
+- `node tools/shot.mjs …` for screenshots in both themes (look at them!). Viewport via `VW`/`VH`, post-load script via `SCRIPT=file.mjs`.
+- GitHub Pages is live at the URL above (checked with a headless browser against the deployed site).
+
 ## Decisions (and changes from the brief)
 - No build step. ES modules; KaTeX via its `.mjs`; three.js via an import map in the volumes page only.
 - Colour roles (CSS variables, readable in both themes): function = blue, approximation/thing being built = orange, error = pink-red, tangent/derivative = green, area/angle/sample = violet, construction = teal, warning = amber. sin/cos/tan have their own vars (blue/orange/green).
