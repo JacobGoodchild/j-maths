@@ -51,7 +51,9 @@ export class Plot {
     this.resetBtn.addEventListener('click', () => this.resetView());
     new ResizeObserver(() => this.resize()).observe(this.el);
     onThemeChange(() => this.redraw());
+    this.kb = 0;
     this.bind();
+    this.bindKeys();
   }
 
   // ---- coordinates ----
@@ -179,6 +181,31 @@ export class Plot {
       this.zoomAt(px, py, f);
     }, { passive: false });
   }
+  bindKeys() {
+    const c = this.canvas;
+    c.tabIndex = 0;
+    c.setAttribute('role', 'application');
+    c.setAttribute('aria-label', this.o.label || 'Interactive graph. Arrow keys move the selected point, Enter selects the next point, plus and minus zoom.');
+    c.addEventListener('focus', () => { this.focused = true; this.redraw(); });
+    c.addEventListener('blur', () => { this.focused = false; this.redraw(); });
+    c.addEventListener('keydown', (e) => {
+      const vis = this.handles.filter((hd) => hd.visible());
+      const hd = vis[this.kb % Math.max(1, vis.length)];
+      const step = (e.shiftKey ? 24 : 6);
+      const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] };
+      if (arrows[e.key] && hd) {
+        e.preventDefault();
+        const [x, y] = hd.get(), [dx, dy] = arrows[e.key];
+        hd.set(x + (dx * step) / this.v.sx, y + (dy * step) / this.v.sy, e);
+        this.redraw();
+      } else if ((e.key === 'Enter' || e.key === ' ') && vis.length > 1) {
+        e.preventDefault(); this.kb = (this.kb + 1) % vis.length; this.redraw();
+      } else if (e.key === '+' || e.key === '=' || e.key === '-') {
+        if (!this.o.zoom) return;
+        e.preventDefault(); this.zoomAt(this.area.cx, this.area.cy, e.key === '-' ? 0.85 : 1 / 0.85);
+      } else if (e.key === '0' || e.key === 'Escape') { this.resetView(); }
+    });
+  }
   zoomAt(px, py, f) {
     const wx = this.ix(px), wy = this.iy(py), b = this.home;
     const lim = (s, hs) => clamp(s * f, hs * this.o.minScale, hs * this.o.maxScale) / s;
@@ -297,6 +324,9 @@ export class Plot {
       ctx.beginPath(); ctx.arc(px, py, r + 2, 0, 6.2832); ctx.fillStyle = C.halo; ctx.fill();
       ctx.restore();
       ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.fillStyle = (typeof hd.color === 'function' ? hd.color(C) : hd.color) || C.fn; ctx.fill();
+      if (this.focused && this.handles.filter((q) => q.visible())[this.kb % Math.max(1, this.handles.filter((q) => q.visible()).length)] === hd) {
+        ctx.beginPath(); ctx.arc(px, py, r + 5, 0, 6.2832); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+      }
     }
   }
 

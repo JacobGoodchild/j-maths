@@ -5,7 +5,7 @@ import { renderTex } from '../../assets/js/kit/tex.js';
 import { loop } from '../../assets/js/kit/anim.js';
 import { colors, onThemeChange } from '../../assets/js/kit/theme.js';
 import { FUNCS, integrate } from '../../assets/js/kit/funcs.js';
-import { Scene3D, THREE, TAU, mapFor, merge, surfaceGeometries, sliceGeometry, makeLabel } from './solid.js';
+import { Scene3D, THREE, TAU, mapFor, GridSet, surfaceGrids, sliceGrids, makeLabel } from './solid.js';
 
 const KEYS = ['x2', 'sqrt', 'sin', 'cos', 'exp', 'recip', 'lorentz', 'gauss'];
 const fnOptions = KEYS.map((k) => ({ value: k, label: 'y = ' + FUNCS[k].label }));
@@ -38,42 +38,42 @@ class SolidView {
 
   rebuild() {
     const c = this.cfg; if (!c) return;
-    const C = colors(), s = this.s, g = s.dyn; s.clear(g);
-    const key = JSON.stringify([c.bounds, c.axis]);
-    if (key !== this.lastKey) { this.lastKey = key; const b = c.bounds; s.extent = Math.max(Math.hypot((b.x1 - b.x0) / 2, (b.y1 - b.y0) / 2, b.z), 1); s.target.set((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, 0); s.resetCamera(); this.buildStatic(); }
-    const P = c.P, map = mapFor(P.axis), nA = Math.max(2, Math.ceil((c.phi / TAU) * 96)), rad = s.extent * 0.012;
-    const std = (col, extra = {}) => new THREE.MeshStandardMaterial({ color: hex(col), side: THREE.DoubleSide, roughness: 0.5, metalness: 0.05, ...extra });
-    if (c.phi > 1e-3) {
-      if (c.wire) {
-        const geoms = surfaceGeometries(P, map, c.phi, 36, Math.max(2, Math.ceil((c.phi / TAU) * 40)));
-        const m = new THREE.Mesh(merge(geoms), new THREE.MeshBasicMaterial({ color: hex(C.area), wireframe: true, transparent: true, opacity: 0.75 }));
-        g.add(m);
-      } else {
-        const geoms = surfaceGeometries(P, map, c.phi, 140, nA);
-        const m = new THREE.Mesh(merge(geoms), std(C.area, { transparent: c.see || c.discs > 0, opacity: c.discs > 0 ? 0.28 : c.see ? 0.35 : 1, depthWrite: !(c.see || c.discs > 0), vertexColors: true }));
-        g.add(m);
-      }
-      if (c.discs > 0) {
-        const m = new THREE.Mesh(merge(sliceGeometry(P, map, c.phi, c.discs, Math.max(2, Math.ceil((c.phi / TAU) * 64)))), std(C.approx, { vertexColors: true }));
-        g.add(m);
-      }
-    }
-    // region plate(s)
-    if (c.region) {
-      for (const a of c.phi > 0.01 ? [0, c.phi] : [0]) {
-        const geos = surfaceGeometries({ ...P, ri: P.ri }, map, 0.0001, 100, 2);
-        const plate = new THREE.Mesh(gridPlate(P, map, a, 100), std(C.area, { transparent: true, opacity: 0.4, depthWrite: false }));
-        g.add(plate);
-      }
-    }
+    const C = colors(), s = this.s, g = s.dyn;
+    const bkey = JSON.stringify([c.bounds, c.axis]);
+    if (bkey !== this.lastKey) { this.lastKey = bkey; const b = c.bounds; s.extent = Math.max(Math.hypot((b.x1 - b.x0) / 2, (b.y1 - b.y0) / 2, b.z), 1); s.target.set((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, 0); s.resetCamera(); this.buildStatic(); }
+    const skey = c.key + '|' + document.documentElement.dataset.theme;
+    if (skey !== this.structKey) { this.structKey = skey; this.buildStructure(C); }
+    this.updatePhi();
+  }
+  buildStructure(C) {
+    const c = this.cfg, s = this.s, g = s.dyn; s.clear(g);
+    const P = c.P, map = mapFor(P.axis), rad = s.extent * 0.012;
+    const std = (col, extra = {}) => new THREE.MeshStandardMaterial({ color: hex(col), side: THREE.DoubleSide, roughness: 0.5, metalness: 0.05, vertexColors: true, ...extra });
+    this.sets = [];
+    if (c.wire) this.sets.push(new GridSet(surfaceGrids(P, map, 36, 40)));
+    else this.sets.push(new GridSet(surfaceGrids(P, map, 90, 72)));
+    const ghost = c.see || c.discs > 0;
+    const m1 = c.wire ? new THREE.MeshBasicMaterial({ color: hex(C.area), wireframe: true, transparent: true, opacity: 0.75 })
+      : std(C.area, { transparent: ghost, opacity: c.discs > 0 ? 0.28 : c.see ? 0.35 : 1, depthWrite: !ghost });
+    this.surface = new THREE.Mesh(this.sets[0].geometry, m1); g.add(this.surface);
+    if (c.discs > 0) { const gs = new GridSet(sliceGrids(P, map, c.discs, 36)); this.sets.push(gs); g.add(new THREE.Mesh(gs.geometry, std(C.approx))); }
+    this.plates = new THREE.Group(); g.add(this.plates);
     for (const cv of c.curves) {
       const pts = cv.pts.map((p) => new THREE.Vector3(...p));
-      const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 220, rad * (cv.w || 1), 8), new THREE.MeshBasicMaterial({ color: hex(C[cv.color]) }));
-      g.add(tube);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 220, rad * (cv.w || 1), 8), new THREE.MeshBasicMaterial({ color: hex(C[cv.color]) })));
     }
-    // axis of revolution, emphasised
-    const L = this.s.extent * 2.4, ax = P.axis === 'y' ? [[0, -L, 0], [0, L, 0]] : [[-L, 0, 0], [L, 0, 0]];
+    const L = s.extent * 2.4, ax = P.axis === 'y' ? [[0, -L, 0], [0, L, 0]] : [[-L, 0, 0], [L, 0, 0]];
     g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ax.map((p) => new THREE.Vector3(...p))), new THREE.LineBasicMaterial({ color: hex(C.ink) })));
+  }
+  updatePhi() {
+    const c = this.cfg, s = this.s, C = colors(), phi = Math.max(c.phi, 1e-4);
+    for (const gs of this.sets) gs.update(phi);
+    this.surface.visible = c.phi > 1e-3;
+    this.s.clear(this.plates);
+    if (c.region) {
+      const map = mapFor(c.P.axis);
+      for (const a of c.phi > 0.01 ? [0, c.phi] : [0]) this.plates.add(new THREE.Mesh(gridPlate(c.P, map, a, 80), new THREE.MeshStandardMaterial({ color: hex(C.area), side: THREE.DoubleSide, transparent: true, opacity: 0.4, depthWrite: false })));
+    }
     s.dirty = true;
   }
 }
@@ -129,7 +129,7 @@ function tabSolid(ctx) {
     // sum of discs
     let sum = 0;
     if (st.N > 0) { const h = (P.s1 - P.s0) / st.N; for (let k = 0; k < st.N; k++) { const m = P.s0 + (k + 0.5) * h; sum += PI * P.r(m) ** 2 * h; } }
-    return { P, curves, bounds, V, sum, phi: st.phi, discs: st.N, see: st.see, wire: st.wire, region: st.region, axis: st.axis };
+    return { P, curves, bounds, V, sum, phi: st.phi, discs: st.N, see: st.see, wire: st.wire, region: st.region, axis: st.axis, key: [st.key, st.a, st.b, st.axis, st.N, st.see, st.wire].join('|') };
   }
   function update() {
     const cfg = config();
@@ -202,7 +202,7 @@ function tabWasher(ctx) {
     const P = { s0: a, s1: b, r: f, ri: g, axis: 'x' }, rmax = Math.max(...top);
     const V = PI * integrate((x) => f(x) ** 2 - g(x) ** 2, a, b, 200);
     let sum = 0; if (st.N > 0) { const h = (b - a) / st.N; for (let k = 0; k < st.N; k++) { const m = a + (k + 0.5) * h; sum += PI * (f(m) ** 2 - g(m) ** 2) * h; } }
-    view.set({ P, curves: [{ pts: xs.map((x, i) => [x, top[i], 0]), color: 'fn', w: 1.2 }, { pts: xs.map((x, i) => [x, bot[i], 0]), color: 'tangent', w: 1.2 }], bounds: { x0: Math.min(0, a), x1: b, y0: -rmax, y1: rmax, z: rmax }, phi: st.phi, discs: st.N, see: st.see, wire: st.wire, region: st.region, axis: 'x' });
+    view.set({ key: ['w', st.i, st.N, st.see, st.wire].join('|'), P, curves: [{ pts: xs.map((x, i) => [x, top[i], 0]), color: 'fn', w: 1.2 }, { pts: xs.map((x, i) => [x, bot[i], 0]), color: 'tangent', w: 1.2 }], bounds: { x0: Math.min(0, a), x1: b, y0: -rmax, y1: rmax, z: rmax }, phi: st.phi, discs: st.N, see: st.see, wire: st.wire, region: st.region, axis: 'x' });
     ro.el.hidden = !st.formula; overlay.hidden = !st.formula;
     if (st.formula) {
       const t = `V=\\pi\\int_{${tn(a)}}^{${tn(b)}}\\left[\\left(${p.ft}\\right)^{2}-\\left(${p.gt}\\right)^{2}\\right]dx`;
