@@ -9,3 +9,4 @@ SCRIPT=tools/preview-derivative.mjs node tools/previews.mjs derivative
 SCRIPT=tools/preview-matrices.mjs node tools/previews.mjs matrices
 SCRIPT=tools/preview-newton.mjs node tools/previews.mjs newton-raphson newton
 SCRIPT=tools/preview-volumes.mjs node tools/previews.mjs volumes solid
+SCRIPT=tools/preview-complex.mjs node tools/previews.mjs complex arithmetic

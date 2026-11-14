@@ -8,4 +8,5 @@ export const SIMS = [
   { id: 'matrices', name: 'Matrices as transformations', sub: 'Grids, determinants and eigenvectors' },
   { id: 'newton-raphson', name: 'Newton–Raphson', sub: 'The tangent method and other root finders' },
   { id: 'volumes', name: 'Volumes of revolution', sub: 'Discs and washers' },
+  { id: 'complex', name: 'Complex numbers', sub: 'Arithmetic, roots, loci and Euler’s formula' },
 ];
