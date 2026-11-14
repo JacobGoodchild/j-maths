@@ -61,6 +61,14 @@ export function mountSim({ title, tabs }) {
     next.showCbs.forEach((f) => f());
     if (updateHash && tabs.length > 1) history.replaceState(null, '', '#' + next.t.id);
   }
+  // Space plays / pauses when nothing interactive has focus
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== ' ' || e.defaultPrevented) return;
+    const t = e.target, tag = t && t.tagName;
+    if (tag === 'INPUT' || tag === 'BUTTON' || tag === 'SELECT' || tag === 'TEXTAREA' || (t && t.getAttribute && t.getAttribute('role') === 'application')) return;
+    const b = current && current.page.querySelector('.transport .btn.primary');
+    if (b) { e.preventDefault(); b.click(); }
+  });
   window.addEventListener('hashchange', () => show(location.hash.slice(1), false));
   show(location.hash.slice(1) || tabs[0].id, false);
 }
