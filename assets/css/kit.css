@@ -313,3 +313,14 @@ a { color: inherit; }
 /* a vertically centred band so equal-scale plots don't leave dead space */
 .stage.centered { container-type: size; align-items: center; justify-content: center; }
 .band { display: flex; width: 100%; height: min(100cqh, calc(var(--frac, 0.44) * 100cqw * 0.94)); border-block: 1px solid var(--line); }
+
+/* formula card floating on a stage */
+.sim-overlay {
+  position: absolute; z-index: 5; left: 14px; top: 12px; right: 14px; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
+}
+.sim-overlay .card-f {
+  pointer-events: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 14px; max-width: 100%; overflow-x: auto; box-shadow: var(--shadow);
+}
+.sim-overlay .card-f .katex-display { margin: 0.25em 0; text-align: left; }
+.sim-overlay .card-f .katex-display > .katex { text-align: left; }

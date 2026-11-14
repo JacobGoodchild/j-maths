@@ -15,7 +15,7 @@ for (const theme of ['light', 'dark']) {
   await ctx.addInitScript((t) => { try { localStorage.setItem('jm-theme', t); } catch {} }, theme);
   const page = await ctx.newPage();
   await page.goto(`http://localhost:${port}/sims/${id}/${tab ? '#' + tab : ''}`);
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(600); await page.evaluate(() => document.fonts.ready);
   if (process.env.SCRIPT) { const m = await import(path.resolve(process.env.SCRIPT)); await m.default(page, { theme }); }
   await page.locator(process.env.SEL || '.stage').first().screenshot({ path: `${root}/assets/previews/${id}-${theme}.png` });
   await ctx.close();

@@ -55,18 +55,22 @@ export class Plot {
   }
 
   // ---- coordinates ----
-  x(wx) { return this.w / 2 + (wx - this.v.cx) * this.v.sx; }
-  y(wy) { return this.h / 2 - (wy - this.v.cy) * this.v.sy; }
-  ix(px) { return this.v.cx + (px - this.w / 2) / this.v.sx; }
-  iy(py) { return this.v.cy - (py - this.h / 2) / this.v.sy; }
-  get xmin() { return this.ix(0); } get xmax() { return this.ix(this.w); }
-  get ymin() { return this.iy(this.h); } get ymax() { return this.iy(0); }
+  get inset() { return Object.assign({ l: 0, r: 0, t: 0, b: 0 }, this.o.inset); }
+  /** pixel centre and size of the drawing area (the canvas minus any inset) */
+  get area() { const n = this.inset; return { x0: n.l, x1: this.w - n.r, y0: n.t, y1: this.h - n.b, cx: (n.l + this.w - n.r) / 2, cy: (n.t + this.h - n.b) / 2, w: this.w - n.l - n.r, h: this.h - n.t - n.b }; }
+  x(wx) { return this.area.cx + (wx - this.v.cx) * this.v.sx; }
+  y(wy) { return this.area.cy - (wy - this.v.cy) * this.v.sy; }
+  ix(px) { return this.v.cx + (px - this.area.cx) / this.v.sx; }
+  iy(py) { return this.v.cy - (py - this.area.cy) / this.v.sy; }
+  get xmin() { return this.ix(this.area.x0); } get xmax() { return this.ix(this.area.x1); }
+  get ymin() { return this.iy(this.area.y1); } get ymax() { return this.iy(this.area.y0); }
 
   // ---- layout ----
   fit() {
     if (this.o.fit) return this.o.fit(this, this.w, this.h);
     const { x, y } = this.o.view;
-    let sx = this.w / (x[1] - x[0]), sy = this.h / (y[1] - y[0]);
+    const A = this.area;
+    let sx = A.w / (x[1] - x[0]), sy = A.h / (y[1] - y[0]);
     if (this.o.equal) sx = sy = Math.min(sx, sy);
     return { cx: (x[0] + x[1]) / 2, cy: (y[0] + y[1]) / 2, sx, sy };
   }
@@ -177,8 +181,8 @@ export class Plot {
     let fx = this.o.lockX ? 1 : lim(this.v.sx, b.sx), fy = this.o.lockY ? 1 : lim(this.v.sy, b.sy);
     if (this.o.equal) fx = fy = Math.abs(fx - 1) < Math.abs(fy - 1) ? (fx === 1 ? fy : fx) : fy;
     this.v.sx *= fx; this.v.sy *= fy;
-    this.v.cx = wx - (px - this.w / 2) / this.v.sx;
-    this.v.cy = wy + (py - this.h / 2) / this.v.sy;
+    this.v.cx = wx - (px - this.area.cx) / this.v.sx;
+    this.v.cy = wy + (py - this.area.cy) / this.v.sy;
     this.touched = true;
     this.o.onView && this.o.onView(this);
     this.redraw();
@@ -194,7 +198,10 @@ export class Plot {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     if (this.o.drawBack) this.o.drawBack(this, ctx);
     this.drawAxes();
+    const A = this.area, inset = !!this.o.inset;
+    if (inset) { ctx.save(); ctx.beginPath(); ctx.rect(A.x0, A.y0, A.w, A.h); ctx.clip(); }
     if (this.o.draw) this.o.draw(this, ctx);
+    if (inset) ctx.restore();
     this.drawHandles();
     this.resetBtn.classList.toggle('on', this.viewChanged());
   }
@@ -230,40 +237,42 @@ export class Plot {
   drawAxes() {
     const { ctx, C, w, h } = this;
     const xt = this.ticks('x'), yt = this.ticks('y');
-    const x0 = clamp(this.x(0), 0, w), y0 = clamp(this.y(0), 0, h);
+    const A = this.area;
+    const x0 = this.o.pin ? A.x0 : clamp(this.x(0), A.x0, A.x1), y0 = this.o.pin ? A.y1 : clamp(this.y(0), A.y0, A.y1);
     if (this.o.grid) {
       ctx.lineWidth = 1; ctx.strokeStyle = C.grid; ctx.beginPath();
-      for (const t of xt) { const px = Math.round(this.x(t.v)) + 0.5; ctx.moveTo(px, 0); ctx.lineTo(px, h); }
-      for (const t of yt) { const py = Math.round(this.y(t.v)) + 0.5; ctx.moveTo(0, py); ctx.lineTo(w, py); }
+      for (const t of xt) { const px = Math.round(this.x(t.v)) + 0.5; ctx.moveTo(px, A.y0); ctx.lineTo(px, A.y1); }
+      for (const t of yt) { const py = Math.round(this.y(t.v)) + 0.5; ctx.moveTo(A.x0, py); ctx.lineTo(A.x1, py); }
       ctx.stroke();
     }
     if (!this.o.axes) return;
     ctx.strokeStyle = C.axis; ctx.lineWidth = 1.4; ctx.beginPath();
-    if (this.o.xAxis !== false) { ctx.moveTo(0, y0); ctx.lineTo(w, y0); }
-    if (this.o.yAxis !== false) { ctx.moveTo(x0, 0); ctx.lineTo(x0, h); }
+    if (this.o.xAxis !== false) { ctx.moveTo(A.x0, y0); ctx.lineTo(A.x1, y0); }
+    if (this.o.yAxis !== false) { ctx.moveTo(x0, A.y0); ctx.lineTo(x0, A.y1); }
     ctx.stroke();
     if (!this.o.numbers) return;
     ctx.font = '12px "Instrument Sans", system-ui, sans-serif';
     ctx.fillStyle = C.ink3;
-    const below = y0 < h - 22;
+    const below = y0 < h - 22 || !!this.o.pin;
     for (const t of xt) {
       if (this.o.xAxis === false) break;
       const px = this.x(t.v);
-      if (Math.abs(t.v) < 1e-9 * Math.max(1, Math.abs(this.xmax))) continue;
+      if (!this.o.pin && Math.abs(t.v) < 1e-9 * Math.max(1, Math.abs(this.xmax))) continue;
+      if (px < A.x0 - 1 || px > A.x1 + 1) continue;
       this.text(t.label, px, below ? y0 + 6 : y0 - 6, { align: 'center', base: below ? 'top' : 'bottom', color: C.ink3, size: 12 });
     }
-    const right = x0 > 34;
+    const right = x0 > 34 || !!this.o.pin;
     for (const t of yt) {
       if (this.o.yAxis === false) break;
-      if (Math.abs(t.v) < 1e-9 * Math.max(1, Math.abs(this.ymax))) continue;
+      if (!this.o.pin && Math.abs(t.v) < 1e-9 * Math.max(1, Math.abs(this.ymax))) continue;
       const py = this.y(t.v);
-      if (py < 11 || py > this.h - 11) continue;
+      if (py < A.y0 + 11 || py > A.y1 - 11) continue;
       this.text(t.label, right ? x0 - 7 : x0 + 7, py, { align: right ? 'right' : 'left', base: 'middle', color: C.ink3, size: 12 });
     }
-    if (xt.some((t) => t.v === 0) && yt.some((t) => t.v === 0) || (this.o.xTicks !== 'auto' && this.o.originLabel))
+    if (!this.o.pin && xt.some((t) => t.v === 0) && yt.some((t) => t.v === 0) || (this.o.xTicks !== 'auto' && this.o.originLabel))
       this.text('0', x0 - 7, y0 + 6, { align: 'right', base: 'top', color: C.ink3, size: 12 });
-    if (this.o.xLabel) this.text(this.o.xLabel, w - 10, y0 - 8, { align: 'right', base: 'bottom', color: C.ink2, size: 13, italic: true });
-    if (this.o.yLabel) this.text(this.o.yLabel, x0 + 10, 8, { align: 'left', base: 'top', color: C.ink2, size: 13, italic: true });
+    if (this.o.xLabel) this.text(this.o.xLabel, A.x1 - 8, y0 - 8, { align: 'right', base: 'bottom', color: C.ink2, size: 13, italic: true });
+    if (this.o.yLabel) this.text(this.o.yLabel, x0 + 10, A.y0 + 8, { align: 'left', base: 'top', color: C.ink2, size: 13, italic: true });
   }
 
   drawHandles() {

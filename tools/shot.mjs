@@ -26,7 +26,7 @@ for (const theme of ['light', 'dark']) {
   page.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
   for (const tab of tabs) {
     await page.goto(`http://localhost:${port}/${sim}/${tab ? '#' + tab : ''}`);
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(500); await page.evaluate(() => document.fonts.ready);
     if (process.env.SCRIPT) { const m = await import(path.resolve(process.env.SCRIPT)); await m.default(page, { tab, theme }); }
     await page.screenshot({ path: `${prefix}${sim.replace(/\W+/g, '_')}-${tab || 'main'}-${theme}.png` });
   }
