@@ -197,8 +197,8 @@ function tabBasins(ctx) {
     plot.setHome(d.view);
     legend.textContent = '';
     const pal = ['var(--c-fn)', 'var(--c-approx)', 'var(--c-tangent)', 'var(--c-area)', 'var(--c-aux)', 'var(--c-error)', 'var(--c-warn)'];
-    st.roots.slice(0, 7).forEach((r, k) => {
-      const a = document.createElement('span'); a.className = 'k'; a.innerHTML = `<span class="sw-dot" style="background:${pal[k]}"></span>`;
+    st.roots.map((r, k) => [r, k]).filter(([r]) => r >= v[0] && r <= v[1]).slice(0, 7).forEach(([r, k]) => {
+      const a = document.createElement('span'); a.className = 'k'; a.innerHTML = `<span class="sw-dot" style="background:${pal[k % pal.length]}"></span>`;
       const b = document.createElement('span'); b.className = 'v'; b.style.textAlign = 'left'; b.textContent = 'root ' + fmtNum(r, 4);
       legend.append(a, b);
     });
