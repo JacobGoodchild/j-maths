@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>j-maths</title>
+<script>try{var t=localStorage.getItem('jm-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="./assets/css/kit.css">
+</head>
+<body>
+<div class="home" id="home">
+  <header>
+    <a class="brand" href="./">j-maths</a>
+    <div class="cog-wrap" id="cog"></div>
+  </header>
+  <main class="grid" id="grid"></main>
+</div>
+<script type="module">
+import { SIMS } from './assets/js/registry.js';
+import { initTheme, setTheme, getTheme, SVG_COG } from './assets/js/kit/theme.js';
+import { segmented } from './assets/js/kit/ui.js';
+import { h } from './assets/js/kit/dom.js';
+initTheme();
+const grid = document.getElementById('grid');
+for (const s of SIMS) {
+  grid.append(h('a', { class: 'card', href: `./sims/${s.id}/` },
+    h('div', { class: 'pv' },
+      h('img', { class: 'lt', src: `./assets/previews/${s.id}-light.png`, alt: '', loading: 'lazy' }),
+      h('img', { class: 'dk', src: `./assets/previews/${s.id}-dark.png`, alt: '', loading: 'lazy' })),
+    h('div', { class: 'nm' }, s.name, h('span', { class: 'sub' }, s.sub))));
+}
+const cog = document.getElementById('cog');
+const btn = h('button', { class: 'icon-btn', type: 'button', title: 'Settings', 'aria-label': 'Settings', html: SVG_COG });
+const pop = h('div', { class: 'popover', hidden: true }, h('div', { class: 'lbl' }, 'Theme'));
+segmented(pop, { full: true, value: getTheme(), options: [{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }], onChange: setTheme });
+cog.append(btn, pop);
+btn.addEventListener('click', () => { pop.hidden = !pop.hidden; });
+document.addEventListener('pointerdown', (e) => { if (!cog.contains(e.target)) pop.hidden = true; });
+</script>
+</body>
+</html>
