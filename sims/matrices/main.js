@@ -5,6 +5,7 @@ import { renderTex, renderRich } from '../../assets/js/kit/tex.js';
 import { loop } from '../../assets/js/kit/anim.js';
 import { colors, onThemeChange } from '../../assets/js/kit/theme.js';
 import { I2, det, mul, apply, lerp, eigen, PRESETS, presetMatrix, presetAt, F_SHAPE } from './mat.js';
+import { tabCube } from './cube.js';
 
 const num = (v, d = 2) => fmtNum(v, d);
 const tn = (v) => { const s = (Math.abs(v) < 5e-3 ? 0 : v).toFixed(2).replace(/\.?0+$/, ''); return s === '-0' ? '0' : s; };
@@ -210,5 +211,6 @@ mountSim({
   tabs: [
     { id: 'transform', label: 'Transformation', init: tabMatrix },
     { id: 'combine', label: 'Combining', init: tabCombine },
+    { id: 'cube', label: '3D', init: tabCube },
   ],
 });

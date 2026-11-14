@@ -9,7 +9,7 @@ Built (all eight from the brief), each with tabs:
 3. **Riemann sums** — sums · convergence (log n) · area function (FTC)
 4. **Distributions** — binomial · Galton board · normal · sample means (CLT)
 5. **Derivative tracer** — gradient function · first principles
-6. **Matrices as transformations** — transformation · combining
+6. **Matrices as transformations** — transformation · combining · 3D (unit cube, 3×3 matrix editor, eigenvectors)
 7. **Newton–Raphson** — Newton–Raphson · basins · fixed point (cobweb) · bisection
 8. **Volumes of revolution** (three.js) — solid · between two curves (washers)
 
@@ -23,7 +23,7 @@ Next: polish. See "Polish list" at the bottom.
   - `plot.js` canvas graph helper: dpr-crisp, axes/ticks (auto, π, degrees, log, integer), pan + zoom + reset-view, draggable handles (keyboard: arrows move, Enter switches handle), curve() that breaks at asymptotes, fillBetween, arrows, `inset`/`pin` for axes at the edge
   - `theme.js` light/dark + `colors()` for canvas · `tex.js` KaTeX · `anim.js` loops · `funcs.js` shared function library (f, f′, f″, F) with Gauss–Legendre quadrature · `rng.js` sfc32 + Box–Muller + exact binomial pmf
 - `assets/vendor/` local KaTeX, three.js (+ OrbitControls). Fonts in `assets/fonts/` (Instrument Sans, Newsreader).
-- Pure maths lives in separate modules so it can be tested in node: `sims/*/series.js`, `riemann.js`, `mat.js`, `nr.js`, `assets/js/kit/{funcs,rng}.js`.
+- Pure maths lives in separate modules so it can be tested in node: `sims/*/series.js`, `riemann.js`, `mat.js`, `nr.js`, `assets/js/kit/{funcs,rng}.js`. `assets/js/kit/scene3d.js` is the shared three.js wrapper (volumes + matrices 3D); pages that use it need the importmap.
 - `tools/`: `shot.mjs` (screenshots a sim in light + dark, prints console errors: `node tools/shot.mjs sims/unit-circle tab1,tab2`; images go to /tmp/claude-0/shots/), `previews*.mjs`, and `test-*.mjs` (run them all with `for f in tools/test-*.mjs; do node $f; done`).
 
 ## Decisions (and changes from the brief)
@@ -46,7 +46,6 @@ Next: polish. See "Polish list" at the bottom.
 - I used the font pair Instrument Sans + Newsreader. Easy to swap (two @font-face rules in kit.css).
 - Volumes: do you want rotation about lines other than the axes (e.g. y = k)? Not built.
 - Should the home page group sims by topic (Calculus, Statistics, Algebra) once there are more of them?
-- Matrices 3D cube stretch goal not built.
 
 ## Polish list (ongoing)
 - Keep checking: overlapping labels, clutter at default state, console errors, both themes.
