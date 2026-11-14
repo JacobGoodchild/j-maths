@@ -98,11 +98,12 @@ export class Scene3D {
     this.dyn = new THREE.Group(); this.scene.add(this.dyn);
     this.static = new THREE.Group(); this.scene.add(this.static);
     this.dirty = true; this.running = false; this.extent = 5; this.target = new THREE.Vector3();
-    this.resetBtn = document.createElement('button'); this.resetBtn.className = 'plot-reset on'; this.resetBtn.type = 'button';
+    this.resetBtn = document.createElement('button'); this.resetBtn.className = 'plot-reset'; this.resetBtn.type = 'button';
     this.resetBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.8-4.1"/><path d="M2.3 2.2v3.3h3.3"/></svg>Reset view';
     this.resetBtn.addEventListener('click', () => this.resetCamera());
     this.wrap.append(this.resetBtn);
     this.controls.addEventListener('change', () => { this.dirty = true; });
+    this.controls.addEventListener('start', () => this.resetBtn.classList.add('on'));
     new ResizeObserver(() => this.resize()).observe(this.wrap);
     onThemeChange(() => { this.dirty = true; this.applyTheme && this.applyTheme(); });
   }
@@ -119,7 +120,7 @@ export class Scene3D {
     this.extent = extent; this.target.copy(target);
     const d = extent * 3.2 / 1.114;
     this.camera.position.set(target.x + d * 0.62, target.y + d * 0.5, target.z + d * 0.78);
-    this.controls.target.copy(target); this.controls.update(); this.dirty = true;
+    this.controls.target.copy(target); this.controls.update(); this.dirty = true; this.resetBtn.classList.remove('on');
   }
   start() { if (this.running) return; this.running = true; this.resize(); const tick = () => { if (!this.running) return; this.controls.update(); if (this.dirty) { this.renderer.render(this.scene, this.camera); this.dirty = false; } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
   stop() { this.running = false; }

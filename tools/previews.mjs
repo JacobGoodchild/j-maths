@@ -11,7 +11,7 @@ const port = srv.address().port;
 const [id, tab = ''] = process.argv.slice(2);
 const browser = await chromium.launch();
 for (const theme of ['light', 'dark']) {
-  const ctx = await browser.newContext({ viewport: { width: 1120, height: 700 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: 1300, height: 700 }, deviceScaleFactor: 1 });
   await ctx.addInitScript((t) => { try { localStorage.setItem('jm-theme', t); } catch {} }, theme);
   const page = await ctx.newPage();
   await page.goto(`http://localhost:${port}/sims/${id}/${tab ? '#' + tab : ''}`);
