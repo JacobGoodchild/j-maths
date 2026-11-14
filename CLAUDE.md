@@ -32,7 +32,7 @@ Next: polish. See "Polish list" at the bottom.
 - UI accent is plain ink (black/off-white), so the maths colours carry the meaning. Switches are coloured to match the thing they show.
 - Unit circle: circle and graph share one vertical scale so the dashed link line is continuous across two canvases; the band is vertically centred so no dead space.
 - Unit circle "unwrap" tab was replaced by "Sine and cosine" (cosine drawn sideways under the circle so it lines up with the horizontal projection).
-- Maclaurin: slider is the *degree n* (matches the notation P_n(x)); sin/cos/arctan have zero terms so some steps don't change the curve. (1+x)^n uses exact fractions (BigInt) for coefficients. Validity band marks open/closed end-points.
+- Maclaurin: the slider counts non-zero *terms* (as the brief says), so sin/cos/arctan don't have dead steps; the formula shows the actual degree P_n(x). (1+x)^n uses exact fractions (BigInt) for coefficients; for a non-negative integer n the slider stops once the polynomial is exact. Validity band marks open/closed end-points.
 - Riemann: the strip count slider steps through a fixed list (1…1000) so keyboard steps are uniform. Upper/lower sums use dense sampling for sup/inf (exact for monotone functions).
 - Distributions: sample (empirical) = violet, theory = orange throughout. Histograms rescale smoothly. Galton board animates up to ~70 balls at once; above that the rest are counted instantly so it stays smooth at 10k/s.
 - Derivative tracer: the derivative trace only draws over the x-range the point has visited. The "interesting" functions are |x|, ∛x, tan and x²sin(1/x).

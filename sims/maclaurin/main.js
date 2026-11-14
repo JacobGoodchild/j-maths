@@ -16,13 +16,20 @@ function seriesTab(ctx, taylor) {
   const { stage, panel } = ctx;
   const T = taylor ? TAYLOR : MACLAURIN;
   const st = {
-    key: taylor ? 'sin' : 'exp', n: 1, npar: [1, 2], a: taylor ? 1 : 0, x0: 1.2,
+    key: taylor ? 'sin' : 'exp', n: 1, k: 2, npar: [1, 2], a: taylor ? 1 : 0, x0: 1.2,
     formula: false, terms: false, error: false, valid: false, probe: false,
   };
   const par = () => ({ n: st.npar, a: taylor ? st.a : 0 });
   let coefs = [];
   const def = () => T[st.key];
-  const recompute = () => { coefs = def().coefs(MAXN, par()); };
+  let nz = [], K = 30;
+  const syncN = () => { st.n = nz.length ? nz[Math.min(st.k, nz.length) - 1] : 0; };
+  const recompute = () => {
+    coefs = def().coefs(MAXN, par());
+    nz = []; coefs.forEach((c, r) => { if (c !== 0) nz.push(r); });
+    K = Math.max(1, Math.min(nz.length, 30)); st.k = Math.min(st.k, K); syncN();
+    if (typeof deg !== 'undefined') { deg.setRange(1, Math.max(2, K)); deg.set(st.k); }
+  };
 
   const overlay = document.createElement('div'); overlay.className = 'sim-overlay';
   const card = document.createElement('div'); card.className = 'card-f'; overlay.append(card); overlay.hidden = true;
@@ -105,20 +112,20 @@ function seriesTab(ctx, taylor) {
   });
   nslider.hide(true);
   const deg = slider(g0, {
-    label: 'Degree', min: 0, max: MAXN, step: 1, value: st.n, color: 'var(--c-approx)',
-    fmt: (v) => String(v), onInput: (v) => { st.n = v; update(); },
+    label: 'Terms', min: 1, max: 30, step: 1, value: st.k, color: 'var(--c-approx)',
+    fmt: (v) => String(v), onInput: (v) => { st.k = v; update(); },
   });
   const lp = loop((dt) => {
     acc += dt * tr.speed.get();
-    while (acc >= 1) { acc -= 1; if (st.n >= MAXN) { tr.set(false); return; } st.n++; }
-    deg.set(st.n); update();
+    while (acc >= 1) { acc -= 1; if (st.k >= K) { tr.set(false); return; } st.k++; }
+    deg.set(st.k); update();
   });
   let acc = 0;
-  const stepUp = () => { st.n = Math.min(MAXN, st.n + 1); deg.set(st.n); update(); };
+  const stepUp = () => { st.k = Math.min(K, st.k + 1); deg.set(st.k); update(); };
   const tr = transport(g0, {
-    onPlay: (p) => { if (p) { if (st.n >= MAXN) { st.n = 0; deg.set(0); } acc = 0; lp.start(); } else lp.stop(); },
+    onPlay: (p) => { if (p) { if (st.k >= K) { st.k = 1; deg.set(1); } acc = 0; lp.start(); } else lp.stop(); },
     onStep: stepUp,
-    onReset: () => { tr.set(false); st.n = 0; deg.set(0); update(); },
+    onReset: () => { tr.set(false); st.k = 1; deg.set(1); update(); },
     speed: { min: 0.5, max: 10, step: 0.5, value: 2, fmt: (v) => v.toFixed(1) + ' / s' },
   });
   ctx.onHide(() => { tr.set(false); });
@@ -142,6 +149,7 @@ function seriesTab(ctx, taylor) {
 
   let lastTex = '';
   function update() {
+    syncN();
     if (taylor) aro.set('a', mt(st.a, 2));
     if (st.formula) {
       const d = def();
