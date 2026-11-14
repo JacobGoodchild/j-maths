@@ -1,8 +1,8 @@
 # j-maths — working notes
 
 ## Status
-- Built: shared kit, home page, unit circle, Maclaurin, Riemann sums, distributions, derivative tracer, matrices.
-- Next: Newton–Raphson, volumes of revolution, then polish.
+- Built: shared kit, home page, unit circle, Maclaurin, Riemann sums, distributions, derivative tracer, matrices, Newton–Raphson.
+- Next: volumes of revolution (three.js), then polish.
 
 ## Layout
 - `index.html` home grid, driven by `assets/js/registry.js`.

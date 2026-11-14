@@ -6,4 +6,5 @@ export const SIMS = [
   { id: 'distributions', name: 'Distributions', sub: 'Shapes that emerge from randomness' },
   { id: 'derivative', name: 'Derivative tracer', sub: 'The gradient function appears as you move' },
   { id: 'matrices', name: 'Matrices as transformations', sub: 'Drag the basis vectors, watch the grid warp' },
+  { id: 'newton-raphson', name: 'Newton–Raphson', sub: 'Tangents, basins and other root finders' },
 ];

@@ -98,7 +98,8 @@ export function dropdown(parent, o) {
   const cur = h('span');
   const btn = h('button', { type: 'button', 'aria-haspopup': 'listbox', 'aria-expanded': 'false' }, cur, h('span', { class: 'caret', html: ICONS.caret }));
   const list = h('ul', { role: 'listbox', hidden: true });
-  const el = h('div', { class: 'dropdown' }, o.label ? h('span', { class: 'field-label' }, o.label) : null, btn, list);
+  const flab = o.label ? renderRich(h('span', { class: 'field-label' }), o.label) : null;
+  const el = h('div', { class: 'dropdown' }, flab, btn, list);
   let items = [];
   function build(options) {
     list.textContent = '';

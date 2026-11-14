@@ -89,18 +89,22 @@ export class Plot {
   setView(v) { Object.assign(this.v, v); this.redraw(); }
   /** Programmatically set the home view (e.g. when a function changes) and snap to it. */
   setHome(view) { this.o.view = view; this.touched = false; this.o.fit = this.o.fit; if (this.w) { this.home = this.fit(); this.v = { ...this.home }; this.redraw(); } }
-  resetView() {
-    if (!this.home) return;
+  /** Smoothly move to a view {cx, cy, sx, sy}. */
+  animateView(to, ms = 450, done) {
     cancelAnimationFrame(this.tween);
-    const from = { ...this.v }, to = this.home, t0 = performance.now();
+    const from = { ...this.v }, t0 = performance.now();
     const step = (t) => {
-      const k = clamp((t - t0) / 260, 0, 1), e = 1 - (1 - k) ** 3;
+      const k = clamp((t - t0) / ms, 0, 1), e = 1 - (1 - k) ** 3;
       for (const key of ['cx', 'cy']) this.v[key] = from[key] + (to[key] - from[key]) * e;
       for (const key of ['sx', 'sy']) this.v[key] = Math.exp(Math.log(from[key]) + (Math.log(to[key]) - Math.log(from[key])) * e);
       this.draw();
-      if (k < 1) this.tween = requestAnimationFrame(step); else { this.touched = false; this.o.onView && this.o.onView(this); }
+      if (k < 1) this.tween = requestAnimationFrame(step); else { done && done(); this.o.onView && this.o.onView(this); }
     };
     this.tween = requestAnimationFrame(step);
+  }
+  resetView() {
+    if (!this.home) return;
+    this.animateView(this.home, 260, () => { this.touched = false; });
   }
   viewChanged() {
     const a = this.v, b = this.home;
