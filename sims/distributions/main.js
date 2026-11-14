@@ -46,7 +46,7 @@ function tabBinomial(ctx) {
     const sc = st.rel ? 1 / Math.max(1, st.N) : 1;
     let m = 0; for (let k = 0; k <= st.n; k++) m = Math.max(m, st.counts[k] * sc);
     if (st.exact || st.N === 0) { for (let k = 0; k <= st.n; k++) m = Math.max(m, binomPmf(st.n, st.p, k) * (st.rel ? 1 : Math.max(1, st.N))); }
-    return Math.max(m * 1.12, st.rel ? 0.05 : 1.2);
+    return Math.max(m * 1.12, st.rel ? 0.5 : 5);
   };
   const fitY = (snap) => {
     const t = target();
@@ -54,7 +54,7 @@ function tabBinomial(ctx) {
     plot.setHome({ x: [-0.9, st.n + 0.9], y: [0, st.ym] });
   };
   const plot = new Plot(stage, {
-    view: { x: [-0.9, 10.9], y: [0, 1.2] }, inset: { l: 62, b: 34, t: 14, r: 16 }, pin: true, pan: false, zoom: false, tickPx: 46, grid: true, intTicks: true,
+    view: { x: [-0.9, 10.9], y: [0, 1.2] }, inset: { l: 62, b: 34, t: 14, r: 16 }, pin: true, pan: false, zoom: false, tickPx: 70, grid: true, intTicks: true,
     draw: (p) => {
       const C = p.C, sc = st.rel ? 1 / Math.max(1, st.N) : 1;
       for (let k = 0; k <= st.n; k++) {
@@ -111,7 +111,8 @@ function tabBinomial(ctx) {
     ro.set('N', String(st.N)); ro.set('m', st.N ? f2(w.mean, 3) : '—'); ro.set('mt', f2(st.n * st.p, 3));
     ro.set('v', w.n > 1 ? f2(w.sd ** 2, 3) : '—'); ro.set('vt', f2(st.n * st.p * (1 - st.p), 3));
   }
-  ctx.onShow(() => { fitY(true); plot.redraw(); });
+  for (let i = 0; i < 30; i++) trial(false);
+  ctx.onShow(() => { fitY(true); plot.redraw(); readoutsUpdate(); });
 }
 
 // =================== Galton board ===================
@@ -232,7 +233,7 @@ function tabNormal(ctx) {
   };
   const view = () => ({ x: [st.mu - 4.6 * st.sigma, st.mu + 4.6 * st.sigma], y: [0, st.ym] });
   const plot = new Plot(stage, {
-    view: view(), inset: { l: 62, b: 34, t: 14, r: 16 }, pin: true, pan: false, zoom: false, tickPx: 60, yLabel: 'frequency density', xLabel: 'height (cm)',
+    view: view(), inset: { l: 62, b: 34, t: 14, r: 16 }, pin: true, pan: false, zoom: false, tickPx: 76, yLabel: 'frequency density', xLabel: 'height (cm)',
     draw: (p) => {
       const C = p.C, N = Math.max(1, st.N);
       if (st.bands) {
@@ -281,6 +282,7 @@ function tabNormal(ctx) {
     ro.set('N', String(st.N)); ro.set('m', st.N ? f2(w.mean, 2) : '—'); ro.set('mt', f2(st.mu, 2));
     ro.set('s', w.n > 1 ? f2(w.sd, 2) : '—'); ro.set('st', f2(st.sigma, 2));
   }
+  for (let i = 0; i < 40; i++) { const x = st.mu + st.sigma * R.normal(), f = Math.floor((x - LO) / FINE); if (f >= 0 && f < NF) st.fine[f]++; st.N++; w.add(x); st.last = x; }
   ctx.onShow(() => { fit(true); plot.redraw(); });
 }
 
@@ -325,7 +327,7 @@ function tabMeans(ctx) {
     return 0.5 * tri(x, 0.15, 0.15) + 0.5 * tri(x, 0.85, 0.15);
   };
   const bot = new Plot(stage, {
-    view: { x: range(), y: [0, 1] }, inset: { l: 62, b: 34, t: 14, r: 16 }, pin: true, pan: false, zoom: false, tickPx: 70, yLabel: 'frequency density', xLabel: 'sample mean',
+    view: { x: range(), y: [0, 1] }, inset: { l: 62, b: 34, t: 14, r: 16 }, pin: true, pan: false, zoom: false, tickPx: 80, yLabel: 'frequency density', xLabel: 'sample mean',
     draw: (p) => {
       const C = p.C, bw = binW(), r = range(), N = Math.max(1, st.N);
       for (let k = 0; k < st.NB; k++) {
