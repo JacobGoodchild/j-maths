@@ -2,4 +2,5 @@
 export const SIMS = [
   { id: 'unit-circle', name: 'Unit circle', sub: 'Sine, cosine and tangent' },
   { id: 'maclaurin', name: 'Maclaurin series', sub: 'A polynomial wraps itself round the curve' },
+  { id: 'riemann', name: 'Riemann sums', sub: 'Rectangles squeeze the area' },
 ];

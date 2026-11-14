@@ -213,6 +213,10 @@ export class Plot {
     const out = [];
     const sg = axis === 'y' && this.o.yFlip ? -1 : 1;
     if (mode === 'none') return out;
+    if (mode === 'log') {
+      for (let k = Math.ceil(lo - 1e-9); k <= hi + 1e-9; k++) out.push({ v: k, label: k >= 0 ? String(10 ** k) : String(+(10 ** k).toFixed(-k)) });
+      return out;
+    }
     if (mode === 'pi' || mode === 'deg') {
       if (mode === 'pi') {
         const st = PI_STEPS.find(([n, d]) => (n / d) * Math.PI * s >= this.o.tickPx * 0.8) || PI_STEPS[PI_STEPS.length - 1];

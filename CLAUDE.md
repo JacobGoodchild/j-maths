@@ -1,8 +1,8 @@
 # j-maths — working notes
 
 ## Status
-- Built: shared kit, home page, **unit circle** (4 tabs).
-- Next: Maclaurin series, Riemann sums, distributions, derivative tracer, matrices, Newton–Raphson, volumes of revolution.
+- Built: shared kit, home page, **unit circle** (4 tabs), **Maclaurin** (3 tabs), **Riemann sums** (3 tabs).
+- Next: distributions, derivative tracer, matrices, Newton–Raphson, volumes of revolution.
 
 ## Layout
 - `index.html` home grid, driven by `assets/js/registry.js`.
