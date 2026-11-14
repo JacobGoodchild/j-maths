@@ -4,4 +4,5 @@ export const SIMS = [
   { id: 'maclaurin', name: 'Maclaurin series', sub: 'A polynomial wraps itself round the curve' },
   { id: 'riemann', name: 'Riemann sums', sub: 'Rectangles squeeze the area' },
   { id: 'distributions', name: 'Distributions', sub: 'Shapes that emerge from randomness' },
+  { id: 'derivative', name: 'Derivative tracer', sub: 'The gradient function appears as you move' },
 ];
