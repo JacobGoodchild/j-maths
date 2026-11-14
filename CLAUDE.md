@@ -1,8 +1,8 @@
 # j-maths — working notes
 
 ## Status
-- Built: shared kit, home page, unit circle, Maclaurin, Riemann sums, distributions, derivative tracer, matrices, Newton–Raphson.
-- Next: volumes of revolution (three.js), then polish.
+- Built: all eight sims from the brief (see below), plus shared kit and home page.
+- Next: polish pass (see Ask Jacob and the polish list at the bottom).
 
 ## Layout
 - `index.html` home grid, driven by `assets/js/registry.js`.

@@ -324,3 +324,4 @@ a { color: inherit; }
 }
 .sim-overlay .card-f .katex-display { margin: 0.25em 0; text-align: left; }
 .sim-overlay .card-f .katex-display > .katex { text-align: left; }
+.seg button:disabled { opacity: .38; cursor: not-allowed; }

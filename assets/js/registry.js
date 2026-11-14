@@ -7,4 +7,5 @@ export const SIMS = [
   { id: 'derivative', name: 'Derivative tracer', sub: 'The gradient function appears as you move' },
   { id: 'matrices', name: 'Matrices as transformations', sub: 'Drag the basis vectors, watch the grid warp' },
   { id: 'newton-raphson', name: 'Newton–Raphson', sub: 'Tangents, basins and other root finders' },
+  { id: 'volumes', name: 'Volumes of revolution', sub: 'Sweep a curve into a solid' },
 ];
