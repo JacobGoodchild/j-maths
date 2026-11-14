@@ -12,6 +12,18 @@ const CORNERS = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1
 const FACES = [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [1, 2, 6, 5], [3, 0, 4, 7]];
 const EDGES = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
 
+/** A solid arrow (cylinder shaft + cone head) from the origin along v, drawn on top of the cube. */
+function arrow3(v, color) {
+  const len = v.length(), head = Math.min(0.3, len * 0.4), rad = 0.028;
+  const g = new THREE.Group(), dir = v.clone().normalize();
+  const mat = () => new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true });
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, Math.max(0.001, len - head), 10), mat()); shaft.position.y = (len - head) / 2;
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(rad * 3, head, 14), mat()); cone.position.y = len - head / 2;
+  for (const m of [shaft, cone]) { m.renderOrder = 10; g.add(m); }
+  g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  return g;
+}
+
 export function tabCube(ctx) {
   const { stage, panel } = ctx;
   const st = { M: [...I3], key: 'identity', p: null, dir: 'x', t: 1, custom: false, matrix: true, det: false, eig: false, ghost: true, vecs: true };
@@ -60,15 +72,23 @@ export function tabCube(ctx) {
     if (st.vecs) [[0, C.fn], [1, C.approx], [2, C.tangent]].forEach(([k, c]) => {
       const v = new THREE.Vector3(m[k], m[3 + k], m[6 + k]), len = v.length();
       if (len < 1e-4) return;
-      const ah = new THREE.ArrowHelper(v.clone().normalize(), new THREE.Vector3(), len, hex(c), Math.min(0.3, len * 0.35), 0.13);
-      for (const part of [ah.line, ah.cone]) { part.material.depthTest = false; part.renderOrder = 10; }
-      dyn.add(ah);
+      dyn.add(arrow3(v, hex(c)));
     });
     // eigenvectors
     if (st.eig) for (const e of eigen3(m)) {
-      if (!e.vec) continue;
-      const a = new THREE.Vector3(...e.vec).multiplyScalar(5.5);
-      dyn.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([a.clone().negate(), a]), new THREE.LineDashedMaterial({ color: hex(C.aux), dashSize: 0.25, gapSize: 0.18 })).computeLineDistances());
+      if (e.vec) {
+        const a = new THREE.Vector3(...e.vec).multiplyScalar(5.5);
+        dyn.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([a.clone().negate(), a]), new THREE.LineDashedMaterial({ color: hex(C.aux), dashSize: 0.25, gapSize: 0.18 })).computeLineDistances());
+      } else {
+        // a whole plane of eigenvectors: its normal is a non-zero row of (M - lambda I)
+        const B = m.slice(); B[0] -= e.value; B[4] -= e.value; B[8] -= e.value;
+        const rows = [[B[0], B[1], B[2]], [B[3], B[4], B[5]], [B[6], B[7], B[8]]].map((r) => new THREE.Vector3(...r));
+        const n = rows.reduce((a, b) => (b.length() > a.length() ? b : a));
+        if (n.length() > 1e-7) {
+          const pl = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({ color: hex(C.aux), transparent: true, opacity: 0.09, side: THREE.DoubleSide, depthWrite: false }));
+          pl.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n.normalize()); dyn.add(pl);
+        }
+      }
     }
     sc.dirty = true;
     // card, readouts
