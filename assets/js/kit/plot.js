@@ -30,6 +30,12 @@ function piLabel(k, num, den) {
 const PI_STEPS = [[1, 12], [1, 6], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1], [16, 1]];
 const DEG_STEPS = [5, 10, 15, 30, 45, 90, 180, 360, 720, 1440];
 
+const ALL = new Set();
+if (typeof document !== 'undefined' && document.fonts) {
+  Promise.all([document.fonts.load('500 12px "Instrument Sans"'), document.fonts.load('italic 500 13px "Newsreader"'), document.fonts.load('500 14px "Newsreader"')])
+    .then(() => { for (const p of ALL) p.redraw(); }).catch(() => {});
+}
+
 export class Plot {
   constructor(host, o = {}) {
     this.o = Object.assign({ grid: true, axes: true, pan: true, zoom: true, equal: false, xTicks: 'auto', yTicks: 'auto',
@@ -48,6 +54,7 @@ export class Plot {
     this.handles = [];
     this.tween = 0;
     this.redraw = scheduler(() => this.draw());
+    ALL.add(this);
     this.resetBtn.addEventListener('click', () => this.resetView());
     new ResizeObserver(() => this.resize()).observe(this.el);
     onThemeChange(() => this.redraw());
