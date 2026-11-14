@@ -32,7 +32,7 @@ export function solve(f, x0, y0, xa, xb, steps = 600) {
   const go = (dir, lim) => {
     const pts = []; let x = x0, y = y0; const h = ((lim - x0) / steps);
     if ((lim - x0) * dir <= 0) return pts;
-    for (let i = 0; i < steps; i++) { const yn = rk4Step(f, x, y, h); x += h; y = yn; if (!Number.isFinite(y) || Math.abs(y) > 1e6) break; pts.push([x, y]); }
+    for (let i = 0; i < steps; i++) { const yn = rk4Step(f, x, y, h); x += h; y = yn; if (!Number.isFinite(y) || Math.abs(y) > 1e6) break; const m = f(x, y); if (!Number.isFinite(m) || Math.abs(m) > 30) break; pts.push([x, y]); }
     return pts;
   };
   const right = go(1, xb), left = go(-1, xa).reverse();

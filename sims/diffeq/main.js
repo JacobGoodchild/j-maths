@@ -101,7 +101,7 @@ function tabEuler(ctx) {
   const xEnd = () => ode().view.x[1] - 0.15 * (ode().view.x[1] - ode().view.x[0]) * 0.2;
   const N = () => Math.max(1, Math.round((xEnd() - pt()[0]) / H()));
   const paths = () => { const [x0, y0] = pt(), f = ode().f, n = N(); return { e: euler(f, x0, y0, H(), n), i: improvedEuler(f, x0, y0, H(), n) }; };
-  const exactAt = (x) => { const [x0, y0] = pt(); const d = ode(); if (d.exact) return d.exact(x0, y0)(x); const s = solve(d.f, x0, y0, x0, x, 4000); return s[s.length - 1][1]; };
+  const exactAt = (x) => { const [x0, y0] = pt(); const d = ode(); if (d.exact) return d.exact(x0, y0)(x); if (x === x0) return y0; const s = solve(d.f, x0, y0, Math.min(x0, x), Math.max(x0, x), 4000), q = s[s.length - 1]; return Math.abs(q[0] - x) < 1e-6 * Math.max(1, Math.abs(x)) ? q[1] : NaN; };
   const plot = new Plot(stage, {
     view: ode().view, tickPx: 80, xLabel: 'x', yLabel: 'y',
     draw: (p) => {
@@ -150,7 +150,7 @@ function tabEuler(ctx) {
     const P = paths(), k = Math.min(st.shown, N());
     const xn = P.e[k][0], ex = exactAt(xn);
     ro.el.hidden = !st.vals;
-    if (st.vals) { ro.set('x', f2(xn, 3)); ro.set('e', `${f2(P.e[k][1], 4)} (${f2(P.e[k][1] - ex, 4)})`); ro.set('i', `${f2(P.i[k][1], 4)} (${f2(P.i[k][1] - ex, 4)})`); ro.set('a', f2(ex, 4)); }
+    if (st.vals) { ro.set('x', f2(xn, 3)); ro.set('e', ok(ex) ? `${f2(P.e[k][1], 4)} (${f2(P.e[k][1] - ex, 4)})` : f2(P.e[k][1], 4)); ro.set('i', ok(ex) ? `${f2(P.i[k][1], 4)} (${f2(P.i[k][1] - ex, 4)})` : f2(P.i[k][1], 4)); ro.set('a', ok(ex) ? f2(ex, 4) : '\u2014'); }
     tbl.hidden = !st.table;
     if (st.table) {
       tbl.textContent = '';
@@ -181,7 +181,8 @@ function tabConv(ctx) {
     view: { x: [-2.3, 0.2], y: [-9, 1] }, inset: { l: 60, b: 34, t: 14, r: 16 }, pin: true, tickPx: 70, xLabel: 'log₁₀ h', yLabel: 'log₁₀ |error at the end|',
     draw: (p) => {
       const C = p.C, d = ode(), [x0, y0] = pt(), X = d.view.x[1] - 0.03 * (d.view.x[1] - d.view.x[0]);
-      const ref = d.exact ? d.exact(x0, y0)(X) : (() => { const s = solve(d.f, x0, y0, x0, X, 6000); return s[s.length - 1][1]; })();
+      const ref = d.exact ? d.exact(x0, y0)(X) : (() => { const s = solve(d.f, x0, y0, x0, X, 6000), q = s[s.length - 1]; return Math.abs(q[0] - X) < 1e-6 ? q[1] : NaN; })();
+      if (!ok(ref)) { p.text('The solution does not reach x = ' + f2(X, 2), p.area.cx, p.area.cy, { align: 'center', size: 14, color: C.ink3 }); return; }
       const col = { e: C.approx, i: C.area };
       const hs = []; for (let k = 0; k <= 40; k++) hs.push(Math.pow(10, -2.2 + (2.2 * k) / 40));
       for (const [key, fn, on] of [['e', euler, st.euler], ['i', improvedEuler, st.imp]]) {
