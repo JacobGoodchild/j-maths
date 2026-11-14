@@ -241,7 +241,7 @@ export class Plot {
     if (this.o.draw) this.o.draw(this, ctx);
     if (inset) ctx.restore();
     this.drawHandles();
-    this.resetBtn.classList.toggle('on', this.viewChanged());
+    this.resetBtn.classList.toggle('on', (this.o.pan || this.o.zoom) && this.viewChanged());
   }
 
   ticks(axis) {

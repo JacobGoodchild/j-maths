@@ -72,7 +72,7 @@ function unitsControl(parent, redraw, plots) {
   return segmented(parent, {
     value: S.deg ? 'deg' : 'rad', full: true,
     options: [{ value: 'rad', label: 'Radians' }, { value: 'deg', label: 'Degrees' }],
-    onChange: (v) => { S.deg = v === 'deg'; for (const p of plots) if (p.o.xTicks !== 'none' && p.o.angleAxis) p.o.xTicks = S.deg ? 'deg' : 'pi'; redraw(); },
+    onChange: (v) => { S.deg = v === 'deg'; for (const p of plots) { if (p.o.xTicks !== 'none' && p.o.angleAxis) p.o.xTicks = S.deg ? 'deg' : 'pi'; if (p.o.angleAxisY) p.o.yTicks = S.deg ? 'deg' : 'pi'; } redraw(); },
   });
 }
 
@@ -263,7 +263,7 @@ function tabBoth(ctx) {
   circle.el.style.gridArea = '1 / 1'; graph.el.style.gridArea = '1 / 2';
   // cosine on its side: x is cos θ (shares the circle's horizontal scale), θ runs downwards
   const side = new Plot(stage, {
-    xTicks: 'none', yTicks: 'pi', yFlip: true, lockX: true, grid: false, originLabel: false,
+    xTicks: 'none', yTicks: 'pi', angleAxisY: true, yFlip: true, lockX: true, grid: false, originLabel: false,
     fit: (p, w, h) => ({ cx: 0, cy: -TAU / 2, sx: circle.v.sx, sy: h / (TAU + 0.9) }),
     draw: (p) => {
       const th = S.theta, C = p.C;
