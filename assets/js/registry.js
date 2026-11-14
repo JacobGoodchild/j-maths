@@ -5,4 +5,5 @@ export const SIMS = [
   { id: 'riemann', name: 'Riemann sums', sub: 'Rectangles squeeze the area' },
   { id: 'distributions', name: 'Distributions', sub: 'Shapes that emerge from randomness' },
   { id: 'derivative', name: 'Derivative tracer', sub: 'The gradient function appears as you move' },
+  { id: 'matrices', name: 'Matrices as transformations', sub: 'Drag the basis vectors, watch the grid warp' },
 ];
