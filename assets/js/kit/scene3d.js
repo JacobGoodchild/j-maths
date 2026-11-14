@@ -8,7 +8,12 @@ export class Scene3D {
     this.host = host;
     this.wrap = document.createElement('div'); this.wrap.className = 'plot';
     host.append(this.wrap);
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false });
+    try { this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false }); }
+    catch (e) {
+      const m = document.createElement('div'); m.textContent = 'WebGL is not available in this browser, so the 3D view cannot be drawn.';
+      m.style.cssText = 'margin:auto;color:var(--ink-3);padding:24px;text-align:center'; this.wrap.append(m);
+      this.renderer = { domElement: document.createElement('canvas'), setClearColor() {}, setPixelRatio() {}, setSize() {}, render() {} }; this.failed = true;
+    }
     this.renderer.setClearColor(0x000000, 0);
     this.canvas = this.renderer.domElement; this.canvas.style.touchAction = 'none';
     this.wrap.append(this.canvas);

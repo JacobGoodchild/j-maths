@@ -116,7 +116,7 @@ function tabBinomial(ctx) {
 // =================== Galton board ===================
 function tabGalton(ctx) {
   const { stage, panel } = ctx;
-  const st = { n: 10, p: 0.5, exact: false, N: 0, counts: new Float64Array(41), balls: [], t: 0, ym: 4, vals: false };
+  const st = { n: 10, p: 0.5, exact: false, N: 0, counts: new Float64Array(41), balls: [], t: 0, ym: 4, vals: false, budget: 0 };
   const DY = 0.866, TAU = 0.17;
   const w = new Welford();
   const geom = () => {
@@ -173,6 +173,7 @@ function tabGalton(ctx) {
   };
   const land = (b) => { st.counts[b.k]++; st.N++; w.add(b.k); };
   const frame = (dt) => {
+    st.budget = Math.min(3, st.budget + dt * 30);
     const speedUp = 1 / TAU;
     for (const b of st.balls) b.u += dt * speedUp;
     st.balls = st.balls.filter((b) => { if (b.u >= st.n) { land(b); return false; } return true; });
@@ -188,7 +189,8 @@ function tabGalton(ctx) {
   runner(ctx, g0, {
     step: (k, single) => {
       const room = Math.max(0, 70 - st.balls.length);
-      const animCount = Math.min(k, room);
+      const animCount = single ? Math.min(k, room) : Math.min(k, room, Math.floor(st.budget));
+      st.budget -= animCount;
       for (let i = 0; i < animCount; i++) newBall(true);
       for (let i = animCount; i < Math.min(k, animCount + 50000); i++) newBall(false);
     },
