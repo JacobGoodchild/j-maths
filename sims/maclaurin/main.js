@@ -105,7 +105,7 @@ function seriesTab(ctx, taylor) {
   });
   nslider.hide(true);
   const deg = slider(g0, {
-    label: 'Degree $n$', min: 0, max: MAXN, step: 1, value: st.n, color: 'var(--c-approx)',
+    label: 'Degree', min: 0, max: MAXN, step: 1, value: st.n, color: 'var(--c-approx)',
     fmt: (v) => String(v), onInput: (v) => { st.n = v; update(); },
   });
   const lp = loop((dt) => {
@@ -132,7 +132,7 @@ function seriesTab(ctx, taylor) {
   validT.hide(!hasValid());
   toggle(g1, { label: 'Evaluate at $x$', color: 'var(--c-error)', onChange: (v) => { st.probe = v; ro.hide(!v); update(); } });
   const ro = readouts(g1, [
-    { key: 'x', label: '$x$' }, { key: 'f', label: '$f(x)$' }, { key: 'p', label: '$P_n(x)$' }, { key: 'e', label: 'Error' },
+    { key: 'x', label: '$x$' }, { key: 'f', label: '$f(x)$' }, { key: 'p', label: 'Polynomial' }, { key: 'e', label: 'Error' },
   ]);
   ro.hide(true);
   if (taylor) {

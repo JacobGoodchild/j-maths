@@ -123,7 +123,7 @@ function tabNewton(ctx) {
     const n = st.xs.length - 1, f = F().f;
     ro.el.hidden = !st.vals;
     if (st.vals) {
-      ro.set('n', String(n)); ro.set('x', fmt(last(), 10)); ro.set('f', sci(f(last())));
+      ro.set('n', String(n)); ro.set('x', Math.abs(last()) > 1e7 ? expStr(last(), 4) : fmt(last(), 10)); ro.set('f', sci(f(last())));
       ro.set('s', { running: '—', converged: 'Converged', diverged: 'Diverging', flat: 'f′(x) = 0', bad: 'Undefined', unresolved: 'No convergence' }[st.status]);
     }
     tbl.hidden = !st.table;

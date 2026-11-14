@@ -29,7 +29,7 @@ function yRange(fn, [x0, x1], include0 = true) {
   for (let i = 0; i <= 600; i++) { const y = fn(x0 + ((x1 - x0) * i) / 600); if (ok(y)) ys.push(y); }
   if (!ys.length) return [-1, 1];
   ys.sort((a, b) => a - b);
-  let lo = ys[Math.floor(ys.length * 0.02)], hi = ys[Math.ceil(ys.length * 0.98) - 1];
+  let lo = ys[Math.floor(ys.length * 0.04)], hi = ys[Math.ceil(ys.length * 0.96) - 1];
   if (include0) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
   const pad = (hi - lo || 1) * 0.15;
   return [lo - pad, hi + pad];
