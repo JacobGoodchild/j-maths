@@ -4,14 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Not found · j-maths</title>
-<script>try{var t=localStorage.getItem('jm-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="/j-maths/assets/css/kit.css">
+<style>
+  body{margin:0;height:100vh;display:grid;place-content:center;gap:14px;text-align:center;font-family:system-ui,sans-serif;background:#f6f4ef;color:#1d1f24}
+  @media (prefers-color-scheme:dark){body{background:#121316;color:#e9e7e1}}
+  a{color:inherit}
+</style>
 </head>
 <body>
-<div style="height:100%;display:grid;place-content:center;text-align:center;gap:14px">
-  <div class="brand" style="font-size:28px">j-maths</div>
-  <div style="color:var(--ink-2)">That page doesn’t exist.</div>
-  <a class="btn" href="/j-maths/" style="text-decoration:none;justify-self:center">All simulations</a>
-</div>
+<div style="font:italic 28px Georgia,serif">j-maths</div>
+<div>That page doesn’t exist.</div>
+<!-- a 404 can be served from any depth, so the way home is worked out from the address (project site: first path segment) -->
+<a id="home" href="./">All simulations</a>
+<script>
+  var seg = location.pathname.split('/')[1];
+  if (location.hostname.slice(-10) === 'github.io' && seg) document.getElementById('home').href = location.origin + '/' + seg + '/';
+</script>
 </body>
 </html>
