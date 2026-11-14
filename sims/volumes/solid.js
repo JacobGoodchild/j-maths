@@ -12,7 +12,6 @@ const TAU = Math.PI * 2;
 const mapFor = (axis) => (axis === 'y' ? (s, r, a) => [r * Math.cos(a), s, r * Math.sin(a)] : (s, r, a) => [s, r * Math.cos(a), r * Math.sin(a)]);
 const finite = (v) => (Number.isFinite(v) ? v : 0);
 
-const TWO_PI = TAU;
 /**
  * A set of (nu x nv) vertex grids merged into one geometry with fixed topology.
  * Each grid: { nu, nv, pos(i, j, phi) -> [x, y, z], shade }. update(phi) refills positions only.

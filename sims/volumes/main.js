@@ -38,7 +38,7 @@ class SolidView {
 
   rebuild() {
     const c = this.cfg; if (!c) return;
-    const C = colors(), s = this.s, g = s.dyn;
+    const C = colors(), s = this.s;
     const bkey = JSON.stringify([c.bounds, c.axis]);
     if (bkey !== this.lastKey) { this.lastKey = bkey; const b = c.bounds; s.extent = Math.max(Math.hypot((b.x1 - b.x0) / 2, (b.y1 - b.y0) / 2, b.z), 1); s.target.set((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, 0); s.resetCamera(); this.buildStatic(); }
     const skey = c.key + '|' + document.documentElement.dataset.theme;
@@ -154,7 +154,6 @@ function tabSolid(ctx) {
 
   const g0 = group(panel);
   dropdown(g0, { label: 'Curve', options: fnOptions, value: st.key, onChange: (v) => { st.key = v; [st.a, st.b] = FUNCS[v].ab; sa.set(st.a); sb.set(st.b); rangeLimits(); update(); } });
-  const lim = () => FUNCS[st.key].view.x;
   const sa = slider(g0, { label: '$a$', min: 0, max: 5, step: 0.05, value: st.a, fmt: (v) => num(v, 2), onInput: (v) => { st.a = Math.min(v, st.b - 0.05); if (v > st.a) sa.set(st.a); update(); } });
   const sb = slider(g0, { label: '$b$', min: 0, max: 5, step: 0.05, value: st.b, fmt: (v) => num(v, 2), onInput: (v) => { st.b = Math.max(v, st.a + 0.05); if (v < st.b) sb.set(st.b); update(); } });
   function rangeLimits() { const d = FUNCS[st.key]; const lo = d.domain ? (st.key === 'sqrt' ? 0 : 0.2) : (st.key === 'gauss' || st.key === 'lorentz') ? -4 : 0; const hi = d.view.x[1]; sa.setRange(lo, hi); sb.setRange(lo, hi); sa.set(st.a); sb.set(st.b); }
@@ -168,7 +167,7 @@ function tabSolid(ctx) {
   });
   ctx.onHide(() => { tr.set(false); view.stop(); });
   const g1 = group(panel, 'Show');
-  const dsl = slider(g1, { label: 'Discs', min: 0, max: 60, step: 1, value: 0, color: 'var(--c-approx)', fmt: (v) => (v ? String(v) : 'off'), onInput: (v) => { st.N = v; update(); } });
+  slider(g1, { label: 'Discs', min: 0, max: 60, step: 1, value: 0, color: 'var(--c-approx)', fmt: (v) => (v ? String(v) : 'off'), onInput: (v) => { st.N = v; update(); } });
   toggle(g1, { label: 'Formula and value', onChange: (v) => { st.formula = v; update(); } });
   toggle(g1, { label: 'See-through', onChange: (v) => { st.see = v; update(); } });
   toggle(g1, { label: 'Wireframe', onChange: (v) => { st.wire = v; update(); } });

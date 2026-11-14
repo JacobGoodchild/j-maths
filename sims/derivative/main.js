@@ -1,6 +1,6 @@
 import { mountSim } from '../../assets/js/kit/shell.js';
 import { Plot, fmtNum, MINUS } from '../../assets/js/kit/plot.js';
-import { group, slider, toggle, segmented, dropdown, transport, readouts, button } from '../../assets/js/kit/ui.js';
+import { group, slider, toggle, segmented, dropdown, transport, readouts } from '../../assets/js/kit/ui.js';
 import { renderTex } from '../../assets/js/kit/tex.js';
 import { loop } from '../../assets/js/kit/anim.js';
 import { FUNCS, d1, d2 } from '../../assets/js/kit/funcs.js';

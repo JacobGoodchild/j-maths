@@ -1,9 +1,9 @@
 import { mountSim } from '../../assets/js/kit/shell.js';
 import { Plot, fmtNum, MINUS } from '../../assets/js/kit/plot.js';
-import { group, slider, toggle, segmented, dropdown, transport, readouts, button } from '../../assets/js/kit/ui.js';
+import { group, toggle, dropdown, transport, readouts } from '../../assets/js/kit/ui.js';
 import { renderTex } from '../../assets/js/kit/tex.js';
 import { loop } from '../../assets/js/kit/anim.js';
-import { FUNCS, newtonStep, newtonRun, findRoots, basinIndex, bisect } from './nr.js';
+import { FUNCS, newtonStep, newtonRun, findRoots, basinIndex } from './nr.js';
 
 const EXAMPLES = [
   ['sq2', 2, 'Converges · $x^2-2$'],
@@ -253,7 +253,7 @@ function tabCobweb(ctx) {
   const lp = loop((dt) => { if (!st.pend) startStep(); if (st.pend) { st.pend.p += dt * tr.speed.get(); if (st.pend.p >= 1) commit(); else plot.redraw(); } });
   const restart = () => { st.xs = [G().x0]; st.pend = null; update(); };
   const g0 = group(panel);
-  const dd = dropdown(g0, { label: 'Iteration $x_{n+1}=g(x_n)$', options: GS.map((g, i) => ({ value: String(i), label: g.label })), value: '0', onChange: (v) => { st.gi = +v; plot.setHome(G().view); restart(); } });
+  dropdown(g0, { label: 'Iteration $x_{n+1}=g(x_n)$', options: GS.map((g, i) => ({ value: String(i), label: g.label })), value: '0', onChange: (v) => { st.gi = +v; plot.setHome(G().view); restart(); } });
   const tr = transport(g0, {
     onPlay: (p) => (p ? lp.start() : lp.stop()),
     onStep: () => { if (st.pend) commit(); startStep(); if (st.pend) { st.pend.p = 1; commit(); } },

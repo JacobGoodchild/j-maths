@@ -1,13 +1,12 @@
 import { mountSim } from '../../assets/js/kit/shell.js';
-import { Plot, fmtNum, MINUS } from '../../assets/js/kit/plot.js';
-import { group, slider, toggle, segmented, dropdown, transport, readouts } from '../../assets/js/kit/ui.js';
+import { Plot, fmtNum } from '../../assets/js/kit/plot.js';
+import { group, slider, toggle, dropdown, transport, readouts } from '../../assets/js/kit/ui.js';
 import { loop } from '../../assets/js/kit/anim.js';
 import { seeded, binomPmf, normalPdf } from '../../assets/js/kit/rng.js';
 
 const R = seeded();
 const RATES = [1, 2, 5, 10, 30, 100, 300, 1000, 3000, 10000];
 const fmtRate = (v) => (RATES[v] >= 1000 ? RATES[v] / 1000 + 'k' : RATES[v]) + ' / s';
-const nice = (v) => { if (v <= 0) return 1; const e = Math.pow(10, Math.floor(Math.log10(v))), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * e; };
 const f2 = (v, d = 2) => fmtNum(v, d);
 
 /**
@@ -76,7 +75,6 @@ function tabBinomial(ctx) {
       }
     },
   });
-  const A0 = (p) => p.area;
   plot.o.yLabel = 'frequency'; plot.o.xLabel = 'heads';
 
   const trial = (single) => {
@@ -311,10 +309,10 @@ function tabMeans(ctx) {
   const top = new Plot(stage, {
     view: { x: src().view, y: [0, 1] }, inset: { l: 62, b: 28, t: 10, r: 16 }, pin: true, pan: false, zoom: false, tickPx: 56, yTicks: 'none', yLabel: 'parent distribution',
     draw: (p) => {
-      const C = p.C, s = src(), A = p.area;
+      const C = p.C, s = src();
       if (s.pdf) p.curve(s.pdf, { color: C.fn, width: 2.6 });
       if (s.pmf) { for (let k = Math.ceil(s.view[0]); k <= s.view[1]; k++) { const h = s.pmf(k); if (h > 0) p.rect(k - 0.35, 0, k + 0.35, h, { fill: C.fn, fillAlpha: 0.6 }); } }
-      if (s.custom) { const hist = new Float64Array(60); for (let i = 0; i < 1; i++); p.curve((x) => twinPdf(x), { color: C.fn, width: 2.6 }); }
+      if (s.custom) { p.curve((x) => twinPdf(x), { color: C.fn, width: 2.6 }); }
       p.vline(s.mu, { color: C.ink3, width: 1.3, dash: [5, 5] });
       if (st.sample && st.last.length) {
         st.last.forEach((x, i) => p.dot(x, 0, { r: 3.6, color: C.area, alpha: 0.75 }));

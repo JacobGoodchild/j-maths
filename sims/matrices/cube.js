@@ -2,8 +2,7 @@
 import { group, slider, toggle, segmented, dropdown, transport, readouts } from '../../assets/js/kit/ui.js';
 import { renderTex, renderRich } from '../../assets/js/kit/tex.js';
 import { loop } from '../../assets/js/kit/anim.js';
-import { colors, onThemeChange } from '../../assets/js/kit/theme.js';
-import { fmtNum } from '../../assets/js/kit/plot.js';
+import { colors } from '../../assets/js/kit/theme.js';
 import { Scene3D, THREE, makeLabel } from '../../assets/js/kit/scene3d.js';
 import { I3, det3, apply3, lerp3, eigen3, PRESETS3, preset3, preset3At } from './mat.js';
 
@@ -96,14 +95,14 @@ export function tabCube(ctx) {
   });
   const sl = slider(g0, { label: '$k$', min: -3, max: 3, step: 0.25, value: 1, fmt: (v) => tn(v) + (PRESETS3[st.key].param?.unit || ''), onInput: (v) => { st.p = v; toPreset(); } });
   const dirLabel = document.createElement('div'); dirLabel.className = 'field-label'; dirLabel.style.cssText = 'color:var(--ink-2);font-size:13px;margin-bottom:-4px'; g0.append(dirLabel);
-  let dirSeg = null; const dirHost = document.createElement('div'); g0.append(dirHost);
+  const dirHost = document.createElement('div'); g0.append(dirHost);
   function syncControls() {
     const P = PRESETS3[st.key];
     sl.hide(!P.param); if (P.param) { renderRich(sl.el.querySelector('label'), `$${P.param.name}$`); sl.setRange(P.param.min, P.param.max); sl.input.step = P.param.step; sl.set(st.p); }
     dirHost.textContent = ''; dirLabel.hidden = dirHost.hidden = !P.dirs;
     if (P.dirs) {
       dirLabel.textContent = P.dirLabel || '';
-      dirSeg = segmented(dirHost, { full: true, value: st.dir, options: P.dirs.map((d) => ({ value: d, label: P.dirText ? P.dirText[d] : `$${d}$` + (P.dirLabel === 'About the axis' ? '-axis' : '') })), onChange: (v) => { st.dir = v; toPreset(); } });
+      segmented(dirHost, { full: true, value: st.dir, options: P.dirs.map((d) => ({ value: d, label: P.dirText ? P.dirText[d] : `$${d}$` + (P.dirLabel === 'About the axis' ? '-axis' : '') })), onChange: (v) => { st.dir = v; toPreset(); } });
     }
     dd.set(st.key);
   }

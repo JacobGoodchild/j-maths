@@ -196,7 +196,7 @@ function tabArea(ctx) {
   const { stage, panel } = ctx;
   stage.classList.add('col');
   const st = { x: 2, whole: false, slope: true, vals: false };
-  let G = null, lo0 = 0;
+  let G = null;
   const buildG = () => {
     const d = def();
     if (d.F) { G = d.F; return; }

@@ -15,9 +15,6 @@ export function binomFrac(p, q, r) {
 }
 const fracToNum = (f) => Number(f.n) / Number(f.d);
 
-/** a^s where a>0 */
-const pw = (a, s) => Math.pow(a, s);
-
 /**
  * Function table. `coefs(N, par)` returns c[0..N] of the series about the centre (Maclaurin: centre 0).
  * `par` = { n: [p, q] exponent as a fraction p/q, a: centre }.
@@ -105,8 +102,8 @@ export function polyTex(def, n, par, maxShown = 6) {
   const terms = [];
   for (let r = 0; r <= n; r++) { const t = def.term(r, par); if (t.body) terms.push(t); }
   if (!terms.length) return '0';
-  let list = terms, gap = false;
-  if (terms.length > maxShown) { list = [...terms.slice(0, maxShown - 2), null, terms[terms.length - 1]]; gap = true; }
+  let list = terms;
+  if (terms.length > maxShown) { list = [...terms.slice(0, maxShown - 2), null, terms[terms.length - 1]]; }
   let out = '';
   list.forEach((t, i) => {
     if (t === null) { out += ' + \\cdots'; return; }

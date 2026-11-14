@@ -1,5 +1,5 @@
 import { mountSim } from '../../assets/js/kit/shell.js';
-import { Plot, fmtNum, MINUS } from '../../assets/js/kit/plot.js';
+import { Plot, fmtNum } from '../../assets/js/kit/plot.js';
 import { group, slider, toggle, segmented, dropdown, transport, readouts } from '../../assets/js/kit/ui.js';
 import { renderTex, renderRich } from '../../assets/js/kit/tex.js';
 import { loop } from '../../assets/js/kit/anim.js';
@@ -86,7 +86,6 @@ function drawEigen(p, m, C) {
     if (!e.vec) continue;
     p.slopeLine(0, 0, e.vec[1] / (e.vec[0] || 1e-12), { color: C.aux, width: 2, dash: [8, 6] });
     if (Math.abs(e.vec[0]) < 1e-9) p.vline(0, { color: C.aux, width: 2, dash: [8, 6] });
-    const L = 2.4 * Math.sign(e.value || 1);
     p.dot(e.vec[0] * e.value, e.vec[1] * e.value, { r: 4, color: C.aux, ring: true });
   }
 }

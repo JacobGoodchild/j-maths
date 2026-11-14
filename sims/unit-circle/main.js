@@ -1,9 +1,8 @@
 import { mountSim } from '../../assets/js/kit/shell.js';
 import { Plot, MINUS, fmtNum } from '../../assets/js/kit/plot.js';
-import { group, slider, toggle, segmented, transport, readouts, button } from '../../assets/js/kit/ui.js';
+import { group, slider, toggle, segmented, transport, readouts } from '../../assets/js/kit/ui.js';
 import { renderTex } from '../../assets/js/kit/tex.js';
 import { loop } from '../../assets/js/kit/anim.js';
-import { withAlpha } from '../../assets/js/kit/theme.js';
 
 const TAU = Math.PI * 2;
 const gcd = (a, b) => (b ? gcd(b, a % b) : a);
@@ -179,7 +178,6 @@ function tabMain(ctx) {
   const graph = makeGraph(bd, circle, (p) => {
     const th = S.theta, C = p.C;
     const fns = [['sin', st.sin, C.sin], ['cos', st.cos, C.cos], ['tan', st.tan, C.tan]];
-    const L = p.ymax;
     if (st.tan) for (let k = -3; k <= 5; k++) { const x = Math.PI / 2 + k * Math.PI; p.vline(x, { color: C.tan, alpha: 0.25, width: 1.2, dash: [3, 5] }); }
     if (st.ruler) { for (let k = 0; k < th; k++) p.line(k, 0, Math.min(k + 1, th), 0, { color: k % 2 ? C.area : C.warn, width: 6 }); for (let k = 1; k < th + 1e-9; k++) p.dot(k, 0, { r: 3.2, color: C.ink }); }
     else p.line(0, 0, th, 0, { color: C.area, width: 4.5 });
@@ -217,7 +215,7 @@ function tabMain(ctx) {
   gridToggle(g2, [circle, graph], redraw);
   const g3 = group(panel, 'Values');
   unitsControl(g3, redraw, [graph]);
-  const showVals = toggle(g3, { label: 'Live values', onChange: (v) => { st.vals = v; ro.hide(!v); redraw(); } });
+  toggle(g3, { label: 'Live values', onChange: (v) => { st.vals = v; ro.hide(!v); redraw(); } });
   const ro = readouts(g3, [
     { key: 'th', label: '$\\theta$' }, { key: 'sin', label: '$\\sin\\theta$' },
     { key: 'cos', label: '$\\cos\\theta$' }, { key: 'tan', label: '$\\tan\\theta$' },

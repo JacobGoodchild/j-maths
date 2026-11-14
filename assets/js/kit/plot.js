@@ -271,7 +271,7 @@ export class Plot {
   }
 
   drawAxes() {
-    const { ctx, C, w, h } = this;
+    const { ctx, C, h } = this;
     const xt = this.ticks('x'), yt = this.ticks('y');
     const A = this.area;
     const x0 = this.o.pin ? A.x0 : clamp(this.x(0), A.x0, A.x1), y0 = this.o.pin ? A.y1 : clamp(this.y(0), A.y0, A.y1);

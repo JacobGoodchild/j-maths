@@ -87,7 +87,7 @@ function seriesTab(ctx, taylor) {
 
   // ---- controls ----
   const g0 = group(panel);
-  const fsel = dropdown(g0, {
+  dropdown(g0, {
     label: 'Function', options: opts(T), value: st.key,
     onChange: (v) => {
       st.key = v;
