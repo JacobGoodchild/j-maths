@@ -37,25 +37,31 @@ Next: polish. See "Polish list" at the bottom.
 - GitHub Pages is live at the URL above (checked with a headless browser against the deployed site).
 
 ## Decisions (and changes from the brief)
-- No build step. ES modules; KaTeX via its `.mjs`; three.js via an import map in the volumes page only.
+- No build step. ES modules; KaTeX via its `.mjs`; three.js via an import map in the volumes and matrices pages (the only ones that need it).
 - Colour roles (CSS variables, readable in both themes): function = blue, approximation/thing being built = orange, error = pink-red, tangent/derivative = green, area/angle/sample = violet, construction = teal, warning = amber. sin/cos/tan have their own vars (blue/orange/green).
 - UI accent is plain ink (black/off-white), so the maths colours carry the meaning. Switches are coloured to match the thing they show.
 - Unit circle: circle and graph share one vertical scale so the dashed link line is continuous across two canvases; the band is vertically centred so no dead space.
-- Unit circle "unwrap" tab was replaced by "Sine and cosine" (cosine drawn sideways under the circle so it lines up with the horizontal projection).
+- Unit circle "unwrap" tab was replaced by "Sine and cosine" (cosine drawn sideways under the circle so it lines up with the horizontal projection) and a "Radian ruler" toggle on tab 1 (the arc and the x-axis are cut into 1-radian pieces, so arc length = angle is visible).
 - Maclaurin: the slider counts non-zero *terms* (as the brief says), so sin/cos/arctan don't have dead steps; the formula shows the actual degree P_n(x). (1+x)^n uses exact fractions (BigInt) for coefficients; for a non-negative integer n the slider stops once the polynomial is exact. Validity band marks open/closed end-points.
 - Riemann: the strip count slider steps through a fixed list (1…1000) so keyboard steps are uniform. Upper/lower sums use dense sampling for sup/inf (exact for monotone functions).
 - Distributions: sample (empirical) = violet, theory = orange throughout. Histograms rescale smoothly. Galton board animates up to ~70 balls at once; above that the rest are counted instantly so it stays smooth at 10k/s.
-- Derivative tracer: the derivative trace only draws over the x-range the point has visited. The "interesting" functions are |x|, ∛x, tan and x²sin(1/x).
+- Derivative tracer: the derivative trace only draws over the x-range the point has visited (the faint whole derivative is on by default so you can see where it will go). The "interesting" functions are |x|, ∛x, tan and x²sin(1/x).
 - Matrices: determinant colour flips to pink and the orientation arc reverses when det < 0. Animation uses the preset parameter (rotation turns, not shrinks).
 - Newton–Raphson: failure cases are examples in the dropdown (flung away, cycle, diverges, unexpected root, repeated root). Extra tabs: basins, cobweb, bisection.
 - Volumes: the surface geometry is refilled (not rebuilt) when only the sweep angle changes. Rotating about the y-axis uses π∫x² dy and only works for monotone curves with a ≥ 0 (the button disables otherwise).
+- Complex numbers and differential equations are extras (see Status). ODE solution curves stop where the slope passes 30 (vertical tangents) instead of drawing RK4 noise.
+- `404.html` uses absolute `/j-maths/` paths (fine for the GitHub Pages project site; change if the site moves to a custom domain).
 - Phones are not handled yet (brief says a later session does that). Pointer events are used so touch mostly works.
 
 ## Ask Jacob
 - Light theme is the default as asked; dark follows the cog switch and is remembered in localStorage.
 - I used the font pair Instrument Sans + Newsreader. Easy to swap (two @font-face rules in kit.css).
 - Volumes: do you want rotation about lines other than the axes (e.g. y = k)? Not built.
-- Should the home page group sims by topic (Calculus, Statistics, Algebra) once there are more of them?
+- Should the home page group sims by topic (Calculus, Statistics, Algebra) now there are ten?
+- Complex numbers and Differential equations were not in the brief; keep or delete? (`rm -r sims/complex`, remove the registry line.)
+- Should the sims accept a typed-in function (like Desmos) anywhere? I kept to presets so the sims stay about *seeing* an idea.
 
 ## Polish list (ongoing)
+- Phone layout and pinch-zoom (planned later session).
 - Keep checking: overlapping labels, clutter at default state, console errors, both themes.
+- Ideas not built: rotation about y = k (volumes), vectors/planes in 3D, polar and parametric curves, hyperbolic functions.
