@@ -229,7 +229,8 @@ export class Plot {
       }
       return out;
     }
-    const step = niceStep(this.o.tickPx / s);
+    let step = niceStep(this.o.tickPx / s);
+    if (this.o.intTicks && axis === 'x') step = Math.max(1, step);
     const dec = Math.max(0, -Math.floor(Math.log10(step) + 1e-9));
     for (let k = Math.ceil(lo / step - 1e-9); k * step <= hi + 1e-9; k++) {
       const v = k * step;

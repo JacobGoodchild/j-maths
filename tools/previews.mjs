@@ -17,7 +17,7 @@ for (const theme of ['light', 'dark']) {
   await page.goto(`http://localhost:${port}/sims/${id}/${tab ? '#' + tab : ''}`);
   await page.waitForTimeout(600); await page.evaluate(() => document.fonts.ready);
   if (process.env.SCRIPT) { const m = await import(path.resolve(process.env.SCRIPT)); await m.default(page, { theme }); }
-  await page.locator(process.env.SEL || '.stage').first().screenshot({ path: `${root}/assets/previews/${id}-${theme}.png` });
+  await page.locator(process.env.SEL || '.tab-page:not([hidden]) .stage').first().screenshot({ path: `${root}/assets/previews/${id}-${theme}.png` });
   await ctx.close();
 }
 await browser.close(); srv.close();
