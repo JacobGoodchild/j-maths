@@ -27,7 +27,7 @@ function piLabel(k, num, den) {
   const top = n === 1 ? 'π' : n + 'π';
   return sign + (d === 1 ? top : top + '/' + d);
 }
-const PI_STEPS = [[1, 12], [1, 6], [1, 4], [1, 3], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1], [16, 1]];
+const PI_STEPS = [[1, 12], [1, 6], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1], [16, 1]];
 const DEG_STEPS = [5, 10, 15, 30, 45, 90, 180, 360, 720, 1440];
 
 export class Plot {

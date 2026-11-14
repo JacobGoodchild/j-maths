@@ -17,7 +17,7 @@ fs.mkdirSync(path.dirname(prefix + 'x'), { recursive: true });
 const tabs = tabsArg && tabsArg !== '-' ? tabsArg.split(',') : [''];
 const browser = await chromium.launch();
 for (const theme of ['light', 'dark']) {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 860 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: +(process.env.VW || 1440), height: +(process.env.VH || 860) }, deviceScaleFactor: 1 });
   await ctx.addInitScript((t) => { try { localStorage.setItem('jm-theme', t); } catch {} }, theme);
   const page = await ctx.newPage();
   const errs = [];

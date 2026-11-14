@@ -54,7 +54,7 @@ function stationary(xr) {
 function tabTracer(ctx) {
   const { stage, panel } = ctx;
   stage.classList.add('col');
-  const st = { lo: S.x, hi: S.x, whole: false, stat: false, second: false, conc: false, tri: false, vals: false, sp: [] };
+  const st = { lo: S.x, hi: S.x, whole: true, stat: false, second: false, conc: false, tri: false, vals: false, sp: [] };
   let busy = false;
   const plots = [];
   const linkX = (from) => { if (busy) return; busy = true; for (const p of plots) if (p !== from) { p.v.cx = from.v.cx; p.v.sx = from.v.sx; p.touched = true; p.redraw(); } busy = false; };
@@ -143,7 +143,7 @@ function tabTracer(ctx) {
   toggle(g1, { label: 'Stationary points', color: 'var(--c-error)', onChange: (v) => { st.stat = v; update(); } });
   toggle(g1, { label: 'Second derivative', color: 'var(--c-area)', onChange: (v) => { st.second = v; low.el.hidden = !v; update(); } });
   toggle(g1, { label: 'Concavity', color: 'var(--c-aux)', onChange: (v) => { st.conc = v; update(); } });
-  toggle(g1, { label: 'Whole derivative', onChange: (v) => { st.whole = v; update(); } });
+  toggle(g1, { label: 'Whole derivative', checked: true, onChange: (v) => { st.whole = v; update(); } });
   toggle(g1, { label: 'Values', onChange: (v) => { st.vals = v; update(); } });
   const ro = readouts(g1, [{ key: 'x', label: '$x$' }, { key: 'f', label: '$f(x)$' }, { key: 'd', label: "$f'(x)$" }, { key: 'dd', label: "$f''(x)$" }]);
   function update() {
