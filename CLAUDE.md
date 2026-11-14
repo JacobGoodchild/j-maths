@@ -51,7 +51,7 @@ Next: polish. See "Polish list" at the bottom.
 - Volumes: the surface geometry is refilled (not rebuilt) when only the sweep angle changes. Rotating about the y-axis uses π∫x² dy and only works for monotone curves with a ≥ 0 (the button disables otherwise).
 - Complex numbers and differential equations are extras (see Status). ODE solution curves stop where the slope passes 30 (vertical tangents) instead of drawing RK4 noise.
 - `404.html` uses absolute `/j-maths/` paths (fine for the GitHub Pages project site; change if the site moves to a custom domain).
-- Phones are not handled yet (brief says a later session does that). Pointer events are used so touch mostly works.
+- Phones are not handled yet (brief says a later session does that). Pointer events are used so touch works, and two-finger pinch zoom + pan works on every pan/zoom-enabled graph (tested with synthetic touch events).
 
 ## Ask Jacob
 - Light theme is the default as asked; dark follows the cog switch and is remembered in localStorage.

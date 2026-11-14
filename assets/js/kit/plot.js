@@ -139,9 +139,21 @@ export class Plot {
     const c = this.canvas;
     let drag = null;
     const pos = (e) => { const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    const touches = new Map(); let pinch = null;
     c.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
       const [px, py] = pos(e);
+      if (e.pointerType === 'touch' && this.o.zoom) {
+        touches.set(e.pointerId, [px, py]);
+        if (touches.size === 2) {
+          if (drag && drag.type === 'h') { drag.hd.active = false; drag.hd.onEnd && drag.hd.onEnd(); }
+          drag = null;
+          const [a, b] = [...touches.values()];
+          pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, mx: (a[0] + b[0]) / 2, my: (a[1] + b[1]) / 2 };
+          c.setPointerCapture(e.pointerId);
+          return;
+        }
+      }
       const hd = this.hitHandle(px, py);
       c.setPointerCapture(e.pointerId);
       if (hd) {
@@ -157,6 +169,16 @@ export class Plot {
     });
     c.addEventListener('pointermove', (e) => {
       const [px, py] = pos(e);
+      if (pinch && touches.has(e.pointerId)) {
+        touches.set(e.pointerId, [px, py]);
+        const [a, b] = [...touches.values()];
+        const d = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+        this.zoomAt(mx, my, d / pinch.d);
+        if (this.o.pan) { if (!this.o.lockX) this.v.cx -= (mx - pinch.mx) / this.v.sx; if (!this.o.lockY) this.v.cy += (my - pinch.my) / this.v.sy; }
+        pinch = { d, mx, my };
+        this.redraw();
+        return;
+      }
       if (!drag) {
         const hd = this.hitHandle(px, py);
         const hv = hd || null;
@@ -173,6 +195,7 @@ export class Plot {
       this.redraw();
     });
     const end = (e) => {
+      if (touches.delete(e.pointerId) && touches.size < 2) pinch = null;
       if (!drag) return;
       if (drag.type === 'h') { drag.hd.active = false; drag.hd.onEnd && drag.hd.onEnd(); }
       drag = null; c.style.cursor = ''; this.redraw();
