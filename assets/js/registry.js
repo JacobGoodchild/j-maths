@@ -1,11 +1,11 @@
 // The list of sims shown on the home page. Add new sims here.
 export const SIMS = [
   { id: 'unit-circle', name: 'Unit circle', sub: 'Sine, cosine and tangent' },
-  { id: 'maclaurin', name: 'Maclaurin series', sub: 'A polynomial wraps itself round the curve' },
-  { id: 'riemann', name: 'Riemann sums', sub: 'Rectangles squeeze the area' },
-  { id: 'distributions', name: 'Distributions', sub: 'Shapes that emerge from randomness' },
-  { id: 'derivative', name: 'Derivative tracer', sub: 'The gradient function appears as you move' },
-  { id: 'matrices', name: 'Matrices as transformations', sub: 'Drag the basis vectors, watch the grid warp' },
-  { id: 'newton-raphson', name: 'Newton–Raphson', sub: 'Tangents, basins and other root finders' },
-  { id: 'volumes', name: 'Volumes of revolution', sub: 'Sweep a curve into a solid' },
+  { id: 'maclaurin', name: 'Maclaurin series', sub: 'Taylor polynomials and convergence' },
+  { id: 'riemann', name: 'Riemann sums', sub: 'Area under a curve' },
+  { id: 'distributions', name: 'Distributions', sub: 'Binomial, normal and the central limit theorem' },
+  { id: 'derivative', name: 'Derivative tracer', sub: 'Gradient function and first principles' },
+  { id: 'matrices', name: 'Matrices as transformations', sub: 'Grids, determinants and eigenvectors' },
+  { id: 'newton-raphson', name: 'Newton–Raphson', sub: 'The tangent method and other root finders' },
+  { id: 'volumes', name: 'Volumes of revolution', sub: 'Discs and washers' },
 ];

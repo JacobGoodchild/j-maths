@@ -116,7 +116,10 @@ function drawCircle(p, o) {
   }
   if (o.sector) p.sector(0, 0, 0.22, 0, th, { fill: C.area, alpha: 0.18 });
   p.arc(0, 0, 0.22, 0, th, { color: C.area, width: 1.8 });
-  p.arc(0, 0, 1, 0, th, { color: C.area, width: 4 });
+  if (o.ruler) {
+    for (let k = 0; k < th; k++) p.arc(0, 0, 1, k, Math.min(k + 1, th), { color: k % 2 ? C.area : C.warn, width: 6 });
+    for (let k = 1; k < th + 1e-9; k++) { const a = Math.floor(k) <= th ? k : null; if (a !== null) p.dot(Math.cos(a), Math.sin(a), { r: 3.2, color: C.ink }); }
+  } else p.arc(0, 0, 1, 0, th, { color: C.area, width: 4 });
   p.line(0, 0, c, s, { color: C.ink, width: 2.2 });
   if (o.vals) {
     if (o.proj) {
@@ -158,7 +161,7 @@ function gridToggle(parent, plots, redraw) {
 // =================== Tab 1: circle and graphs ===================
 function tabMain(ctx) {
   const { stage, panel } = ctx;
-  const st = { sin: true, cos: false, tan: false, tri: false, proj: false, vals: false, special: false, whole: false };
+  const st = { sin: true, cos: false, tan: false, tri: false, proj: false, vals: false, special: false, whole: false, ruler: false };
   const redraw = () => { circle.redraw(); graph.redraw(); updateReadouts(); };
 
   const bd = band(stage);
@@ -166,7 +169,7 @@ function tabMain(ctx) {
     snap: () => st.special, redraw,
     onResize: () => { if (graph) graph.resize(); },
     draw: (p) => {
-      drawCircle(p, { tri: st.tri, proj: st.proj, tan: st.tan, vals: st.vals, special: st.special, sector: true });
+      drawCircle(p, { tri: st.tri, proj: st.proj, tan: st.tan, vals: st.vals, special: st.special, sector: true, ruler: st.ruler });
       const th = S.theta, C = p.C;
       if (st.sin) p.line(Math.cos(th), Math.sin(th), p.xmax, Math.sin(th), { color: C.sin, width: 1.6, dash: [5, 4], alpha: 0.9 });
       if (st.tan && Math.abs(Math.cos(th)) > 1e-3) p.line(1, Math.tan(th), p.xmax, Math.tan(th), { color: C.tan, width: 1.6, dash: [5, 4], alpha: 0.9 });
@@ -178,7 +181,8 @@ function tabMain(ctx) {
     const fns = [['sin', st.sin, C.sin], ['cos', st.cos, C.cos], ['tan', st.tan, C.tan]];
     const L = p.ymax;
     if (st.tan) for (let k = -3; k <= 5; k++) { const x = Math.PI / 2 + k * Math.PI; p.vline(x, { color: C.tan, alpha: 0.25, width: 1.2, dash: [3, 5] }); }
-    p.line(0, 0, th, 0, { color: C.area, width: 4.5 });
+    if (st.ruler) { for (let k = 0; k < th; k++) p.line(k, 0, Math.min(k + 1, th), 0, { color: k % 2 ? C.area : C.warn, width: 6 }); for (let k = 1; k < th + 1e-9; k++) p.dot(k, 0, { r: 3.2, color: C.ink }); }
+    else p.line(0, 0, th, 0, { color: C.area, width: 4.5 });
     for (const [n, on, col] of fns) {
       if (!on) continue;
       const f = trigFns[n];
@@ -209,6 +213,7 @@ function tabMain(ctx) {
   toggle(g2, { label: 'Triangle', onChange: (v) => { st.tri = v; redraw(); } });
   toggle(g2, { label: 'Projections', onChange: (v) => { st.proj = v; redraw(); } });
   toggle(g2, { label: 'Special angles', onChange: (v) => { st.special = v; redraw(); } });
+  toggle(g2, { label: 'Radian ruler', onChange: (v) => { st.ruler = v; redraw(); } });
   gridToggle(g2, [circle, graph], redraw);
   const g3 = group(panel, 'Values');
   unitsControl(g3, redraw, [graph]);
