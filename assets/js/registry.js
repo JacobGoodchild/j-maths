@@ -9,4 +9,5 @@ export const SIMS = [
   { id: 'newton-raphson', name: 'Newton–Raphson', sub: 'The tangent method and other root finders' },
   { id: 'volumes', name: 'Volumes of revolution', sub: 'Discs and washers' },
   { id: 'complex', name: 'Complex numbers', sub: 'Arithmetic, roots, loci and Euler’s formula' },
+  { id: 'diffeq', name: 'Differential equations', sub: 'Slope fields, Euler’s method and oscillations' },
 ];

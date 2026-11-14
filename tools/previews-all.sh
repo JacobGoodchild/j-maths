@@ -10,3 +10,4 @@ SCRIPT=tools/preview-matrices.mjs node tools/previews.mjs matrices
 SCRIPT=tools/preview-newton.mjs node tools/previews.mjs newton-raphson newton
 SCRIPT=tools/preview-volumes.mjs node tools/previews.mjs volumes solid
 SCRIPT=tools/preview-complex.mjs node tools/previews.mjs complex arithmetic
+SCRIPT=tools/preview-diffeq.mjs node tools/previews.mjs diffeq slope-field

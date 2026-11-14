@@ -13,6 +13,10 @@ Built (all eight from the brief), each with tabs:
 7. **Newton–Raphson** — Newton–Raphson · basins · fixed point (cobweb) · bisection
 8. **Volumes of revolution** (three.js) — solid · between two curves (washers)
 
+Extras beyond the brief (built with the spare time, delete freely if unwanted):
+9. **Complex numbers** — arithmetic (z+w, zw, z/w with construction) · roots · loci · Euler's formula from its series
+10. **Differential equations** — slope field · Euler's method (Euler and improved Euler) · convergence (log-log) · oscillations (second order, roots of the auxiliary equation)
+
 Next: polish. See "Polish list" at the bottom.
 
 ## Layout
