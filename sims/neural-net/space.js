@@ -86,20 +86,24 @@ export function tabDescent(ctx) {
   const { stage, panel } = ctx;
   const R = 2.2, G = 64, ZMAX = 2.1, NMAX = 150;
   const st = { key: 'valley', start: [...SURFACES.valley.start], lr: 0.3, mom: 0.8, k: 0, plain: true, momOn: true, arrow: true, eq: true };
-  const S = () => SURFACES[st.key], zOf = (x, y) => Math.min(ZMAX, S().f(x, y) * S().zs);
+  const S = () => SURFACES[st.key], raw = (x, y) => S().f(x, y) * S().zs, zOf = (x, y) => Math.min(ZMAX * 1.15, raw(x, y));
   const sc = new Scene3D(stage, { up: [0, 0, 1], dir: [0.55, -0.85, 1.0] });
   const card = overlayCard(stage);
   const surf = new THREE.Group(), dyn = new THREE.Group(); sc.scene.add(surf, dyn);
   function buildSurface() {
     const C = colors(); sc.clear(surf); axes(sc, 2.6, ['w₁', 'w₂', 'L']);
-    const geo = new THREE.PlaneGeometry(2 * R, 2 * R, G, G), pos = geo.attributes.position, col = new Float32Array(pos.count * 3), lo = hex(C.fn), hi = hex(C.stage), c = new THREE.Color(); let zm = 1e-9;
-    for (let i = 0; i < pos.count; i++) { const z = zOf(pos.getX(i), pos.getY(i)); pos.setZ(i, z); zm = Math.max(zm, z); }
-    let zmin = Infinity; for (let i = 0; i < pos.count; i++) zmin = Math.min(zmin, pos.getZ(i));
-    for (let i = 0; i < pos.count; i++) { c.copy(lo).lerp(hi, Math.sqrt((pos.getZ(i) - zmin) / (zm - zmin || 1)) * 0.85); col[3 * i] = c.r; col[3 * i + 1] = c.g; col[3 * i + 2] = c.b; }
+    const geo = new THREE.PlaneGeometry(2 * R, 2 * R, G, G), pos = geo.attributes.position, col = new Float32Array(pos.count * 3), lo = hex(C.fn), hi = hex(C.stage), c = new THREE.Color();
+    let zmin = Infinity;
+    for (let i = 0; i < pos.count; i++) { const z = raw(pos.getX(i), pos.getY(i)); pos.setZ(i, z); zmin = Math.min(zmin, z); }
+    for (let i = 0; i < pos.count; i++) { c.copy(lo).lerp(hi, Math.sqrt(Math.min(1, Math.max(0, (pos.getZ(i) - zmin) / (ZMAX - zmin)))) * 0.85); col[3 * i] = c.r; col[3 * i + 1] = c.g; col[3 * i + 2] = c.b; }
+    // the surface is cut off where it leaves the box (no flat shelf)
+    const idx = geo.index.array, keep = [];
+    for (let i = 0; i < idx.length; i += 3) if (pos.getZ(idx[i]) <= ZMAX && pos.getZ(idx[i + 1]) <= ZMAX && pos.getZ(idx[i + 2]) <= ZMAX) keep.push(idx[i], idx[i + 1], idx[i + 2]);
+    geo.setIndex(keep);
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals();
     surf.add(new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })));
-    const lines = [], n = 16;
-    for (let i = 0; i <= n; i++) for (let j = 0; j < G; j++) { const a = -R + (2 * R * i) / n, b0 = -R + (2 * R * j) / G, b1 = b0 + (2 * R) / G; lines.push(a, b0, zOf(a, b0), a, b1, zOf(a, b1), b0, a, zOf(b0, a), b1, a, zOf(b1, a)); }
+    const lines = [], n = 16, seg = (x0, y0, x1, y1) => { const z0 = raw(x0, y0), z1 = raw(x1, y1); if (z0 <= ZMAX && z1 <= ZMAX) lines.push(x0, y0, z0, x1, y1, z1); };
+    for (let i = 0; i <= n; i++) for (let j = 0; j < G; j++) { const a = -R + (2 * R * i) / n, b0 = -R + (2 * R * j) / G, b1 = b0 + (2 * R) / G; seg(a, b0, a, b1); seg(b0, a, b1, a); }
     surf.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(lines), 3)), new THREE.LineBasicMaterial({ color: hex(C.ink), transparent: true, opacity: 0.22 })));
   }
   const paths = () => ({ p: descend(S(), st.start, st.lr, 0, NMAX), m: descend(S(), st.start, st.lr, st.mom, NMAX) });
@@ -130,7 +134,7 @@ export function tabDescent(ctx) {
   }
   sc.applyTheme = () => { buildSurface(); refresh(); };
   const g0 = group(panel);
-  dropdown(g0, { label: 'Loss surface', options: Object.keys(SURFACES).map((k) => ({ value: k, label: SURFACES[k].label })), value: st.key, onChange: (v) => { st.key = v; st.start = [...S().start]; s1.set(st.start[0]); s2.set(st.start[1]); tr.set(false); st.k = 0; buildSurface(); refresh(); } });
+  dropdown(g0, { label: 'Loss surface', options: Object.keys(SURFACES).map((k) => ({ value: k, label: SURFACES[k].label })), value: st.key, onChange: (v) => { st.key = v; st.start = [...S().start]; s1.set(st.start[0]); s2.set(st.start[1]); tr.set(false); st.k = 40; buildSurface(); refresh(); } });
   slider(g0, { label: 'Learning rate $\\eta$', min: 0.01, max: 1, step: 0.01, value: st.lr, color: 'var(--c-approx)', fmt: (v) => v.toFixed(2), onInput: (v) => { st.lr = v; refresh(); } });
   slider(g0, { label: 'Momentum $\\mu$', min: 0, max: 0.98, step: 0.01, value: st.mom, color: 'var(--c-area)', fmt: (v) => v.toFixed(2), onInput: (v) => { st.mom = v; refresh(); } });
   const s1 = slider(g0, { label: 'Start $w_1$', min: -2, max: 2, step: 0.02, value: st.start[0], fmt: (v) => fmtNum(v, 2), onInput: (v) => { st.start[0] = v; refresh(); } });

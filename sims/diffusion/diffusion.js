@@ -85,3 +85,31 @@ export function centresOf(shape, K, d) {
   for (let i = 0; i < K; i++) { const p = shape.f((i + 0.5) / K, i, K); for (let j = 0; j < d; j++) out[i * d + j] = p[j]; }
   return out;
 }
+
+/**
+ * One DDIM step from time t to an earlier time s (the first-order DPM-Solver), in place, no randomness.
+ * Predict the noise, use it to guess the clean point, then re-noise that guess to the level of time s:
+ * eps = -sqrt(1 - abar_t) score,  x0 = (x - sqrt(1 - abar_t) eps) / sqrt(abar_t),  x_s = sqrt(abar_s) x0 + sqrt(1 - abar_s) eps
+ */
+export function ddimStep(x, t, s, centres, d, sw, tmp) {
+  score(x, t, centres, d, sw, tmp);
+  const at = alphaBar(t), as = alphaBar(s), st = Math.sqrt(1 - at), ss = Math.sqrt(1 - as);
+  for (let j = 0; j < d; j++) { const eps = -st * tmp[j], x0 = (x[j] - st * eps) / Math.sqrt(at); x[j] = Math.sqrt(as) * x0 + ss * eps; }
+}
+/** One forward (noising) Euler–Maruyama step of size h from time t: dx = -1/2 beta x dt + sqrt(beta) dW */
+export function forwardStep(x, t, h, rng) {
+  const b = beta(t), sd = Math.sqrt(b * h);
+  for (let j = 0; j < x.length; j++) x[j] += -0.5 * b * x[j] * h + sd * rng.normal();
+}
+/** The time at which the log-SNR equals l (inverse of logSNR) */
+export function tOfLogSNR(l) {
+  const c = Math.log(1 + Math.exp(-l)), a = 0.5 * (BMAX - BMIN);   // -ln(abar) = BMIN t + a t^2
+  return (-BMIN + Math.sqrt(BMIN * BMIN + 4 * a * c)) / (2 * a);
+}
+/** n+1 times from t = 1 down to tEnd, evenly spaced in t ('time') or in log-SNR ('snr': the DPM-Solver clock) */
+export function timeGrid(n, kind = 'time', tEnd = 1e-3) {
+  const out = [];
+  if (kind === 'snr') { const l1 = logSNR(1), l0 = logSNR(tEnd); for (let k = 0; k <= n; k++) out.push(k === 0 ? 1 : k === n ? tEnd : tOfLogSNR(l1 + ((l0 - l1) * k) / n)); }
+  else for (let k = 0; k <= n; k++) out.push(1 - ((1 - tEnd) * k) / n);
+  return out;
+}

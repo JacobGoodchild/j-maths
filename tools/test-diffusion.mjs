@@ -1,4 +1,4 @@
-import { ddpmSchedule, alphaBar, beta, score, denoise, reverseStep, centresOf, SHAPES2, SHAPES3 } from '../sims/diffusion/diffusion.js';
+import { timeGrid, logSNR, tOfLogSNR, ddimStep, forwardStep, ddpmSchedule, alphaBar, beta, score, denoise, reverseStep, centresOf, SHAPES2, SHAPES3 } from '../sims/diffusion/diffusion.js';
 import { makeRng } from '../assets/js/kit/rng.js';
 let fails = 0; const ok = (c, m) => { if (!c) { fails++; console.log('FAIL', m); } };
 const S = ddpmSchedule();
@@ -31,4 +31,13 @@ for (const mode of ['sde', 'ode']) {
   ok(worst < 0.35, mode + ' samples land on the data, worst distance ' + worst);
   ok(Math.abs(inner / n - 0.36) < 0.12, mode + ' share on the inner ring ' + inner / n);
 }
+// "a better clock": 10 DDIM steps spaced evenly in log-SNR land much closer to the data than 10 spaced evenly in time
+{ const c = centresOf(SHAPES2.rings, 120, 2), tmp = new Float64Array(2), dist = (x) => { let m = Infinity; for (let k = 0; k < 120; k++) m = Math.min(m, Math.hypot(x[0] - c[2 * k], x[1] - c[2 * k + 1])); return m; }, res = {};
+  for (const grid of ['time', 'snr']) { const rng = makeRng([4, 3, 2, 1]), T = timeGrid(10, grid); let dd = 0; for (let i = 0; i < 200; i++) { const x = [rng.normal(), rng.normal()]; for (let k = 0; k < 10; k++) ddimStep(x, T[k], T[k + 1], c, 2, 0.05, tmp); dd += dist(x) / 200; } res[grid] = dd; }
+  ok(res.snr < 0.1 && res.snr < res.time * 0.7, `log-SNR spacing ${res.snr} against even time ${res.time}`);
+  ok(Math.abs(tOfLogSNR(logSNR(0.37)) - 0.37) < 1e-12, 'tOfLogSNR inverts logSNR'); const T = timeGrid(7, 'snr'); ok(T[0] === 1 && T[7] === 1e-3 && T.every((t, i) => !i || t < T[i - 1]), 'grid runs from 1 down to the end'); }
+// a single Gaussian data point: DDIM is exact in one step of any size when the data width is 0
+{ const c = new Float64Array([1.5]), tmp = new Float64Array(1), x = [0.7]; ddimStep(x, 0.9, 0.2, c, 1, 1e-6, tmp); const e = (0.7 - Math.sqrt(alphaBar(0.9)) * 1.5) / Math.sqrt(1 - alphaBar(0.9)); ok(Math.abs(x[0] - (Math.sqrt(alphaBar(0.2)) * 1.5 + Math.sqrt(1 - alphaBar(0.2)) * e)) < 1e-4, 'DDIM exact for one point'); }
+// forward SDE from a fixed point ends close to N(0, 1)
+{ const rng = makeRng([8, 8, 8, 8]); let m = 0, v = 0; const n = 2000; for (let i = 0; i < n; i++) { const x = [2]; for (let k = 0; k < 200; k++) forwardStep(x, k / 200, 1 / 200, rng); m += x[0] / n; v += x[0] * x[0] / n; } ok(Math.abs(m) < 0.1 && Math.abs(v - 1) < 0.12, `forward SDE ends near N(0,1): mean ${m}, var ${v}`); }
 console.log(fails ? `diffusion: ${fails} FAILED` : 'diffusion: all passed'); process.exit(fails ? 1 : 0);

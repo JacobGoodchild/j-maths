@@ -6,7 +6,8 @@ import { loop } from '../../assets/js/kit/anim.js';
 import { colors, withAlpha } from '../../assets/js/kit/theme.js';
 import { makeRng } from '../../assets/js/kit/rng.js';
 import { Scene3D, THREE, makeLabel } from '../../assets/js/kit/scene3d.js';
-import { ddpmSchedule, alphaBar, beta, logSNR, score, denoise, reverseStep, SHAPES2, SHAPES3, centresOf } from './diffusion.js';
+import { tabTime } from './time.js';
+import { ddpmSchedule, alphaBar, beta, logSNR, score, denoise, reverseStep, ddimStep, forwardStep, timeGrid, SHAPES2, SHAPES3, centresOf } from './diffusion.js';
 
 const S = 0.05, K2 = 120, T1 = 1e-3;
 const VIEW = { x: [-3.6, 3.6], y: [-2.9, 2.9] };
@@ -141,15 +142,16 @@ function tabScore(ctx) {
 function tabSample(ctx) {
   const { stage, panel } = ctx;
   const NP = 320, NTR = 6, rng = makeRng([5, 6, 7, 8]), tmp = new Float64Array(2);
-  const st = { mode: 'sde', steps: 100, k: 0, trails: true, data: true, field: false, formula: true };
+  const st = { mode: 'sde', grid: 'time', steps: 100, k: 0, trails: true, data: true, field: false, formula: true };
   let X = new Float64Array(NP * 2), trails = [];
   const card = overlayCard(stage);
-  const tOf = (k) => 1 - ((1 - T1) * k) / st.steps;
-  function fresh() { for (let i = 0; i < NP * 2; i++) X[i] = rng.normal(); st.k = 0; trails = Array.from({ length: NTR }, (_, i) => [[X[2 * i], X[2 * i + 1]]]); }
+  let T = timeGrid(st.steps, st.grid, T1);
+  const tOf = (k) => T[Math.min(k, st.steps)];
+  function fresh() { T = timeGrid(st.steps, st.grid, T1); for (let i = 0; i < NP * 2; i++) X[i] = rng.normal(); st.k = 0; trails = Array.from({ length: NTR }, (_, i) => [[X[2 * i], X[2 * i + 1]]]); }
   function stepOnce() {
     if (st.k >= st.steps) return false;
-    const t = tOf(st.k), h = (1 - T1) / st.steps, c = centres(), x = [0, 0];
-    for (let i = 0; i < NP; i++) { x[0] = X[2 * i]; x[1] = X[2 * i + 1]; reverseStep(x, t, h, c, 2, S, st.mode, rng, tmp); X[2 * i] = x[0]; X[2 * i + 1] = x[1]; if (i < NTR) trails[i].push([x[0], x[1]]); }
+    const t = T[st.k], h = t - T[st.k + 1], c = centres(), x = [0, 0];
+    for (let i = 0; i < NP; i++) { x[0] = X[2 * i]; x[1] = X[2 * i + 1]; if (st.mode === 'ddim') ddimStep(x, t, t - h, c, 2, S, tmp); else reverseStep(x, t, h, c, 2, S, st.mode, rng, tmp); X[2 * i] = x[0]; X[2 * i + 1] = x[1]; if (i < NTR) trails[i].push([x[0], x[1]]); }
     st.k++; return true;
   }
   fresh();
@@ -170,7 +172,8 @@ function tabSample(ctx) {
   });
   const g0 = group(panel);
   shapeDD(g0, () => { tr.set(false); fresh(); update(); });
-  segmented(g0, { full: true, value: st.mode, options: [{ value: 'sde', label: 'SDE (random)' }, { value: 'ode', label: 'ODE (smooth)' }], onChange: (v) => { st.mode = v; tr.set(false); fresh(); update(); } });
+  segmented(g0, { full: true, value: st.mode, options: [{ value: 'sde', label: 'SDE' }, { value: 'ode', label: 'ODE' }, { value: 'ddim', label: 'DDIM' }], onChange: (v) => { st.mode = v; tr.set(false); fresh(); update(); } });
+  segmented(g0, { full: true, label: 'Steps evenly spaced in', value: 'time', options: [{ value: 'time', label: 'time $t$' }, { value: 'snr', label: 'log-SNR $\\lambda$' }], onChange: (v) => { st.grid = v; tr.set(false); fresh(); update(); } });
   const STEPS = [5, 10, 20, 50, 100, 200, 500];
   slider(g0, { label: 'Number of steps', min: 0, max: STEPS.length - 1, step: 1, value: 4, fmt: (v) => String(STEPS[v]), onInput: (v) => { st.steps = STEPS[v]; tr.set(false); fresh(); update(); } });
   let acc = 0;
@@ -188,13 +191,16 @@ function tabSample(ctx) {
   toggle(g1, { label: 'Score arrows', color: 'var(--c-tangent)', onChange: (v) => { st.field = v; update(); } });
   toggle(g1, { label: 'Equation', checked: true, onChange: (v) => { st.formula = v; update(); } });
   const ro = readouts(g1, [{ key: 'k', label: 'step' }, { key: 't', label: 'time $t$' }, { key: 'b', label: '$\\beta(t)$' }, { key: 'd', label: 'mean distance to data' }]);
+  const nt = document.createElement('p'); nt.style.cssText = 'color:var(--ink-2);font-size:13px;line-height:1.45;margin:4px 0 0'; g1.append(nt);
   function update() {
     const t = tOf(st.k), c = centres(); let D = 0;
     for (let i = 0; i < NP; i++) { let m = Infinity; for (let k = 0; k < K2; k++) { const d = (X[2 * i] - c[2 * k]) ** 2 + (X[2 * i + 1] - c[2 * k + 1]) ** 2; if (d < m) m = d; } D += Math.sqrt(m); }
     ro.set('k', `${st.k} / ${st.steps}`); ro.set('t', t.toFixed(3)); ro.set('b', beta(t).toFixed(2)); ro.set('d', (D / NP).toFixed(3));
     card.show(st.formula, st.mode === 'sde'
       ? `\\mathrm{d}x=\\Big[-\\tfrac12\\beta(t)\\,x-\\beta(t)\\,\\nabla_x\\log p_t(x)\\Big]\\mathrm{d}t+\\sqrt{\\beta(t)}\\;\\mathrm{d}\\bar w`
-      : `\\frac{\\mathrm{d}x}{\\mathrm{d}t}=-\\tfrac12\\beta(t)\\,x-\\tfrac12\\beta(t)\\,\\nabla_x\\log p_t(x)`);
+      : st.mode === 'ode' ? `\\frac{\\mathrm{d}x}{\\mathrm{d}t}=-\\tfrac12\\beta(t)\\,x-\\tfrac12\\beta(t)\\,\\nabla_x\\log p_t(x)`
+      : `\\hat x_0=\\frac{x_t-\\sqrt{1-\\bar\\alpha_t}\\,\\hat\\varepsilon}{\\sqrt{\\bar\\alpha_t}},\\qquad x_s=\\sqrt{\\bar\\alpha_s}\\,\\hat x_0+\\sqrt{1-\\bar\\alpha_s}\\,\\hat\\varepsilon`);
+    nt.textContent = st.mode === 'sde' ? 'The SDE adds fresh randomness at every step, so each point jitters its way home.' : st.mode === 'ode' ? 'The ODE has no randomness: the same starting noise always ends at the same place. Try 5 or 10 steps.' : 'DDIM guesses the clean point, then steps part of the way there. With only 5 or 10 steps, try spacing them evenly in log-SNR.';
     plot.redraw();
   }
   ctx.onShow(update);
@@ -295,6 +301,7 @@ mountSim({
   tabs: [
     { id: 'noise', label: 'Adding noise', init: tabNoise },
     { id: 'score', label: 'Score field', init: tabScore },
+    { id: 'time', label: 'Through time', init: tabTime },
     { id: 'sampling', label: 'Noise to data', init: tabSample },
     { id: 'space', label: 'In 3D', init: tab3D },
   ],

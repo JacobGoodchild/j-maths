@@ -17,6 +17,10 @@ Extras beyond the brief (built with the spare time, delete freely if unwanted):
 9. **Complex numbers** — arithmetic (z+w, zw, z/w with construction) · roots · loci · Euler's formula from its series
 10. **Differential equations** — slope field · Euler's method (Euler and improved Euler) · convergence (log-log) · oscillations (second order, roots of the auxiliary equation)
 
+Machine learning sims (added later, notation follows jacobgoodchild.github.io/learn-ml: $\beta_n$, $\alpha_n = 1-\beta_n$, $\bar\alpha_n$, score, log-SNR):
+11. **Neural networks** (three.js for two tabs) — through the network (forward pass / backpropagation on a 2-4-3-1 diagram, hover a neuron for its sum, one learning step) · training (live decision map, loss curve) · hidden space (3D: the input plane bent by three hidden neurons, with the output neuron's dividing plane) · gradient descent (3D loss surfaces, plain against momentum)
+12. **Diffusion models** (three.js for one tab) — adding noise (DDPM forward process, 1000 steps) · score field (exact score arrows, density, denoised guess) · through time (1D: forward SDE, reverse SDE, probability-flow ODE paths over the density) · noise to data (2D sampling: SDE / ODE / DDIM, steps even in time or in log-SNR) · in 3D (points flowing from noise onto a 3D shape, score vectors)
+
 Next: polish. See "Polish list" at the bottom.
 
 ## Layout
@@ -27,11 +31,11 @@ Next: polish. See "Polish list" at the bottom.
   - `plot.js` canvas graph helper: dpr-crisp, axes/ticks (auto, π, degrees, log, integer), pan + zoom + reset-view, draggable handles (keyboard: arrows move, Enter switches handle), curve() that breaks at asymptotes, fillBetween, arrows, `inset`/`pin` for axes at the edge
   - `theme.js` light/dark + `colors()` for canvas · `tex.js` KaTeX · `anim.js` loops · `funcs.js` shared function library (f, f′, f″, F) with Gauss–Legendre quadrature · `rng.js` sfc32 + Box–Muller + exact binomial pmf
 - `assets/vendor/` local KaTeX, three.js (+ OrbitControls). Fonts in `assets/fonts/` (Instrument Sans, Newsreader).
-- Pure maths lives in separate modules so it can be tested in node: `sims/*/series.js`, `riemann.js`, `mat.js`, `nr.js`, `assets/js/kit/{funcs,rng}.js`. `assets/js/kit/scene3d.js` is the shared three.js wrapper (volumes + matrices 3D); pages that use it need the importmap.
+- Pure maths lives in separate modules so it can be tested in node: `sims/*/series.js`, `riemann.js`, `mat.js`, `nr.js`, `neural-net/nn.js`, `diffusion/diffusion.js`, `assets/js/kit/{funcs,rng}.js`. `assets/js/kit/scene3d.js` is the shared three.js wrapper (volumes + matrices 3D); pages that use it need the importmap.
 - `tools/`: `shot.mjs` (screenshots a sim in light + dark, prints console errors: `node tools/shot.mjs sims/unit-circle tab1,tab2`; images go to /tmp/claude-0/shots/), `previews*.mjs`, and `test-*.mjs` (run them all with `for f in tools/test-*.mjs; do node $f; done`).
 
 ## Testing
-- `sh tools/test-all.sh` — pure maths (series coefficients vs known results, Riemann rules vs hand calculations and exact integrals, binomial pmf and samplers, matrix/eigen maths in 2D and 3D, Newton iterates vs hand calculation, volumes, ODE solvers and their orders of convergence, complex roots/Euler's formula).
+- `sh tools/test-all.sh` — pure maths (series coefficients vs known results, Riemann rules vs hand calculations and exact integrals, binomial pmf and samplers, matrix/eigen maths in 2D and 3D, Newton iterates vs hand calculation, volumes, ODE solvers and their orders of convergence, complex roots/Euler's formula, backprop vs finite differences, diffusion score vs finite differences and SDE/ODE/DDIM samplers landing on the data).
 - `node tools/monkey.mjs sims/<id>` — clicks every dropdown option, slider extreme, toggle, button, drag and wheel in every tab and reports console errors (volumes takes a few minutes in software WebGL).
 - `node tools/shot.mjs …` for screenshots in both themes (look at them!). Viewport via `VW`/`VH`, post-load script via `SCRIPT=file.mjs`.
 - GitHub Pages is live at the URL above (checked with a headless browser against the deployed site).
@@ -49,6 +53,9 @@ Next: polish. See "Polish list" at the bottom.
 - Matrices: determinant colour flips to pink and the orientation arc reverses when det < 0. Animation uses the preset parameter (rotation turns, not shrinks).
 - Newton–Raphson: failure cases are examples in the dropdown (flung away, cycle, diverges, unexpected root, repeated root). Extra tabs: basins, cobweb, bisection.
 - Volumes: the surface geometry is refilled (not rebuilt) when only the sweep angle changes. Rotating about the y-axis uses π∫x² dy and only works for monotone curves with a ≥ 0 (the button disables otherwise).
+- Diffusion: no trained network. The data is a mixture of narrow Gaussians along a shape, so the noisy density $p_t$ and its score are known exactly in any dimension (`score()` in `diffusion.js`, checked against finite differences). Continuous time uses the variance-preserving SDE with $\beta(t)$ linear from 0.1 to 20; the "Adding noise" tab uses the discrete DDPM schedule ($\beta_n$ from $10^{-4}$ to 0.02, N = 1000). Measured, and tested: with 10 steps, spacing them evenly in log-SNR roughly halves the distance to the data compared with even time steps; DDIM against Euler makes little difference here.
+- Neural networks: tanh hidden layers, sigmoid output, cross-entropy loss; backprop is tested against finite differences. Training uses full-batch gradient descent with momentum 0.9. The 3D hidden-space tab is a 2-3-1 network so the hidden layer is exactly a point in 3D. Loss surfaces are cut off where they leave the box rather than flattened. Colours: class 1 = blue, class 0 = orange, gradients = green, positive/negative weights = blue/pink.
+- 3D tabs that animate (diffusion 3D, hidden space) spin slowly by default; the "Turn slowly" toggle stops it.
 - Complex numbers and differential equations are extras (see Status). ODE solution curves stop where the slope passes 30 (vertical tangents) instead of drawing RK4 noise.
 - `404.html` is self-contained (no site paths) and works out the way home from the address, because a 404 can be served from any depth.
 - Phones are not handled yet (brief says a later session does that). Pointer events are used so touch works, and two-finger pinch zoom + pan works on every pan/zoom-enabled graph (tested with synthetic touch events).
@@ -64,4 +71,5 @@ Next: polish. See "Polish list" at the bottom.
 ## Polish list (ongoing)
 - Phone layout and pinch-zoom (planned later session).
 - Keep checking: overlapping labels, clutter at default state, console errors, both themes.
+- ML ideas not built: a network trained in the browser to predict the noise (so the learned score can be compared with the exact one), flow matching, attention, convolution filters.
 - Ideas not built: rotation about y = k (volumes), vectors/planes in 3D, polar and parametric curves, hyperbolic functions.
