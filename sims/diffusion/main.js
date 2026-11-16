@@ -45,9 +45,23 @@ const drawData = (p, alpha = 0.5) => { const c = centres(); for (let k = 0; k < 
 function tabNoise(ctx) {
   const { stage, panel } = ctx;
   const SCH = ddpmSchedule(), NP = 700, rng = makeRng([11, 22, 33, 44]);
-  const st = { n: 0, formula: true, ghost: true, circle: false };
+  const st = { n: 0, formula: true, ghost: true, circle: false, pic: true };
   const eps = new Float64Array(NP * 2), jit = new Float64Array(NP * 2); for (let i = 0; i < NP * 2; i++) { eps[i] = rng.normal(); jit[i] = rng.normal() * S; }
   const card = overlayCard(stage);
+  // a small picture gets exactly the same treatment, pixel by pixel
+  const IM = 64, oc = document.createElement('canvas'); oc.width = oc.height = IM; const og = oc.getContext('2d');
+  { const sky = og.createLinearGradient(0, 0, 0, IM); sky.addColorStop(0, '#3b6fd6'); sky.addColorStop(0.7, '#f4c58a'); og.fillStyle = sky; og.fillRect(0, 0, IM, IM);
+    og.fillStyle = '#ffe27a'; og.beginPath(); og.arc(46, 17, 8, 0, 7); og.fill();
+    og.fillStyle = '#2f7d4f'; og.beginPath(); og.moveTo(0, 46); og.quadraticCurveTo(20, 30, 40, 46); og.quadraticCurveTo(54, 38, 64, 44); og.lineTo(64, 64); og.lineTo(0, 64); og.fill();
+    og.fillStyle = '#f3efe6'; og.fillRect(14, 38, 20, 16); og.fillStyle = '#b5412f'; og.beginPath(); og.moveTo(11, 39); og.lineTo(24, 27); og.lineTo(37, 39); og.fill(); og.fillStyle = '#3a2a25'; og.fillRect(22, 45, 5, 9); }
+  const src = og.getImageData(0, 0, IM, IM).data, img0 = new Float32Array(IM * IM * 3), imgE = new Float32Array(IM * IM * 3), outImg = og.createImageData(IM, IM);
+  for (let i = 0; i < IM * IM; i++) for (let ch = 0; ch < 3; ch++) { img0[3 * i + ch] = src[4 * i + ch] / 127.5 - 1; imgE[3 * i + ch] = rng.normal(); outImg.data[4 * i + 3] = 255; }
+  function drawPicture(p, ra, rn) {
+    for (let i = 0; i < IM * IM; i++) for (let ch = 0; ch < 3; ch++) outImg.data[4 * i + ch] = (ra * img0[3 * i + ch] + rn * imgE[3 * i + ch]) * 127.5 + 127.5;
+    og.putImageData(outImg, 0, 0);
+    const c = p.ctx, sz = 176, x = p.w - sz - 18, y = 18; c.save(); c.imageSmoothingEnabled = false; c.drawImage(oc, x, y, sz, sz); c.strokeStyle = p.C.line; c.lineWidth = 1; c.strokeRect(x - 0.5, y - 0.5, sz + 1, sz + 1); c.restore();
+    p.text('a picture, same recipe on every pixel', x + sz, y + sz + 14, { size: 12, color: p.C.ink2, align: 'right' });
+  }
   const plot = new Plot(stage, {
     view: VIEW, equal: true, tickPx: 90,
     draw: (p) => {
@@ -56,6 +70,7 @@ function tabNoise(ctx) {
       if (st.ghost && st.n > 0) drawData(p, 0.35);
       const col = st.n === 0 ? C.fn : C.area;
       for (let i = 0; i < NP; i++) { const k = i % K2; p.dot(ra * (c[2 * k] + jit[2 * i]) + rn * eps[2 * i], ra * (c[2 * k + 1] + jit[2 * i + 1]) + rn * eps[2 * i + 1], { r: 2.6, color: col, alpha: 0.78 }); }
+      if (st.pic) drawPicture(p, ra, rn);
       inset(p, [{ f: (u) => Math.sqrt(SCH.abar[Math.round(u * 1000)]), color: C.fn, label: 'signal √ᾱ' }, { f: (u) => Math.sqrt(1 - SCH.abar[Math.round(u * 1000)]), color: C.area, label: 'noise √(1−ᾱ)' }], st.n / 1000);
     },
   });
@@ -76,6 +91,7 @@ function tabNoise(ctx) {
   toggle(g1, { label: 'Formula', checked: true, onChange: (v) => { st.formula = v; update(); } });
   toggle(g1, { label: 'Original data', checked: true, color: 'var(--c-fn)', onChange: (v) => { st.ghost = v; update(); } });
   toggle(g1, { label: 'Standard normal rings', onChange: (v) => { st.circle = v; update(); } });
+  toggle(g1, { label: 'A picture too', checked: true, onChange: (v) => { st.pic = v; update(); } });
   const ro = readouts(g1, [{ key: 'b', label: '$\\beta_n$ (noise added)' }, { key: 'a', label: '$\\bar\\alpha_n$ (picture kept)' }, { key: 's', label: 'signal : noise' }]);
   function update() {
     const n = st.n, a = SCH.abar[n];
