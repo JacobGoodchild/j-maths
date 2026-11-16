@@ -19,7 +19,7 @@ Extras beyond the brief (built with the spare time, delete freely if unwanted):
 
 Machine learning sims (added later, notation follows jacobgoodchild.github.io/learn-ml: $\beta_n$, $\alpha_n = 1-\beta_n$, $\bar\alpha_n$, score, log-SNR):
 11. **Neural networks** (three.js for two tabs) — through the network (forward pass / backpropagation on a 2-4-3-1 diagram, hover a neuron for its sum, one learning step) · training (live decision map, loss curve) · hidden space (3D: the input plane bent by three hidden neurons, with the output neuron's dividing plane) · gradient descent (3D loss surfaces, plain against momentum)
-12. **Diffusion models** (three.js for one tab) — adding noise (DDPM forward process, 1000 steps) · score field (exact score arrows, density, denoised guess) · through time (1D: forward SDE, reverse SDE, probability-flow ODE paths over the density) · noise to data (2D sampling: SDE / ODE / DDIM, steps even in time or in log-SNR) · in 3D (points flowing from noise onto a 3D shape, score vectors)
+12. **Diffusion models** (three.js for one tab) — adding noise (DDPM forward process, 1000 steps) · score field (exact score arrows, density, denoised guess) · through time (1D: forward SDE, reverse SDE, probability-flow ODE paths over the density) · noise to data (2D sampling: SDE / ODE / DDIM, steps even in time or in log-SNR) · learn it (a 5-64-64-2 network trained live with Adam to predict the noise; its arrows against the exact score, and samples it makes) · in 3D (points flowing from noise onto a 3D shape, score vectors)
 
 Next: polish. See "Polish list" at the bottom.
 
@@ -31,7 +31,7 @@ Next: polish. See "Polish list" at the bottom.
   - `plot.js` canvas graph helper: dpr-crisp, axes/ticks (auto, π, degrees, log, integer), pan + zoom + reset-view, draggable handles (keyboard: arrows move, Enter switches handle), curve() that breaks at asymptotes, fillBetween, arrows, `inset`/`pin` for axes at the edge
   - `theme.js` light/dark + `colors()` for canvas · `tex.js` KaTeX · `anim.js` loops · `funcs.js` shared function library (f, f′, f″, F) with Gauss–Legendre quadrature · `rng.js` sfc32 + Box–Muller + exact binomial pmf
 - `assets/vendor/` local KaTeX, three.js (+ OrbitControls). Fonts in `assets/fonts/` (Instrument Sans, Newsreader).
-- Pure maths lives in separate modules so it can be tested in node: `sims/*/series.js`, `riemann.js`, `mat.js`, `nr.js`, `neural-net/nn.js`, `diffusion/diffusion.js`, `assets/js/kit/{funcs,rng}.js`. `assets/js/kit/scene3d.js` is the shared three.js wrapper (volumes + matrices 3D); pages that use it need the importmap.
+- Pure maths lives in separate modules so it can be tested in node: `sims/*/series.js`, `riemann.js`, `mat.js`, `nr.js`, `neural-net/nn.js`, `diffusion/{diffusion,denoiser}.js`, `assets/js/kit/{funcs,rng}.js`. `assets/js/kit/scene3d.js` is the shared three.js wrapper (volumes + matrices 3D); pages that use it need the importmap.
 - `tools/`: `shot.mjs` (screenshots a sim in light + dark, prints console errors: `node tools/shot.mjs sims/unit-circle tab1,tab2`; images go to /tmp/claude-0/shots/), `previews*.mjs`, and `test-*.mjs` (run them all with `for f in tools/test-*.mjs; do node $f; done`).
 
 ## Testing
@@ -53,7 +53,7 @@ Next: polish. See "Polish list" at the bottom.
 - Matrices: determinant colour flips to pink and the orientation arc reverses when det < 0. Animation uses the preset parameter (rotation turns, not shrinks).
 - Newton–Raphson: failure cases are examples in the dropdown (flung away, cycle, diverges, unexpected root, repeated root). Extra tabs: basins, cobweb, bisection.
 - Volumes: the surface geometry is refilled (not rebuilt) when only the sweep angle changes. Rotating about the y-axis uses π∫x² dy and only works for monotone curves with a ≥ 0 (the button disables otherwise).
-- Diffusion: no trained network. The data is a mixture of narrow Gaussians along a shape, so the noisy density $p_t$ and its score are known exactly in any dimension (`score()` in `diffusion.js`, checked against finite differences). Continuous time uses the variance-preserving SDE with $\beta(t)$ linear from 0.1 to 20; the "Adding noise" tab uses the discrete DDPM schedule ($\beta_n$ from $10^{-4}$ to 0.02, N = 1000). Measured, and tested: with 10 steps, spacing them evenly in log-SNR roughly halves the distance to the data compared with even time steps; DDIM against Euler makes little difference here.
+- Diffusion: every tab except "Learn it" uses the exact score, with no trained network. "Learn it" trains a real one (`denoiser.js`, about 4,600 weights, a few thousand Adam steps in 20 seconds); its samples are blurrier than the exact ones, which is honest. Its loss settles near 0.4, not 0, because most of the noise cannot be predicted. The data is a mixture of narrow Gaussians along a shape, so the noisy density $p_t$ and its score are known exactly in any dimension (`score()` in `diffusion.js`, checked against finite differences). Continuous time uses the variance-preserving SDE with $\beta(t)$ linear from 0.1 to 20; the "Adding noise" tab uses the discrete DDPM schedule ($\beta_n$ from $10^{-4}$ to 0.02, N = 1000). Measured, and tested: with 10 steps, spacing them evenly in log-SNR roughly halves the distance to the data compared with even time steps; DDIM against Euler makes little difference here.
 - Neural networks: tanh hidden layers, sigmoid output, cross-entropy loss; backprop is tested against finite differences. Training uses full-batch gradient descent with momentum 0.9. The 3D hidden-space tab is a 2-3-1 network so the hidden layer is exactly a point in 3D. Loss surfaces are cut off where they leave the box rather than flattened. Colours: class 1 = blue, class 0 = orange, gradients = green, positive/negative weights = blue/pink.
 - 3D tabs that animate (diffusion 3D, hidden space) spin slowly by default; the "Turn slowly" toggle stops it.
 - Complex numbers and differential equations are extras (see Status). ODE solution curves stop where the slope passes 30 (vertical tangents) instead of drawing RK4 noise.
@@ -71,5 +71,5 @@ Next: polish. See "Polish list" at the bottom.
 ## Polish list (ongoing)
 - Phone layout and pinch-zoom (planned later session).
 - Keep checking: overlapping labels, clutter at default state, console errors, both themes.
-- ML ideas not built: a network trained in the browser to predict the noise (so the learned score can be compared with the exact one), flow matching, attention, convolution filters.
+- ML ideas not built: flow matching, attention, convolution filters.
 - Ideas not built: rotation about y = k (volumes), vectors/planes in 3D, polar and parametric curves, hyperbolic functions.

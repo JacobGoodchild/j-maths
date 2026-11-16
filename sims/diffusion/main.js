@@ -7,6 +7,7 @@ import { colors, withAlpha } from '../../assets/js/kit/theme.js';
 import { makeRng } from '../../assets/js/kit/rng.js';
 import { Scene3D, THREE, makeLabel } from '../../assets/js/kit/scene3d.js';
 import { tabTime } from './time.js';
+import { tabTrain } from './train.js';
 import { ddpmSchedule, alphaBar, beta, logSNR, score, denoise, reverseStep, ddimStep, forwardStep, timeGrid, SHAPES2, SHAPES3, centresOf } from './diffusion.js';
 
 const S = 0.05, K2 = 120, T1 = 1e-3;
@@ -303,6 +304,7 @@ mountSim({
     { id: 'score', label: 'Score field', init: tabScore },
     { id: 'time', label: 'Through time', init: tabTime },
     { id: 'sampling', label: 'Noise to data', init: tabSample },
+    { id: 'learn', label: 'Learn it', init: tabTrain },
     { id: 'space', label: 'In 3D', init: tab3D },
   ],
 });
