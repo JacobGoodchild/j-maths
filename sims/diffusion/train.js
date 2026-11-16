@@ -44,7 +44,7 @@ export function tabTrain(ctx) {
   slider(g0, { label: 'Look at noise level $t$', min: 0.02, max: 1, step: 0.01, value: st.t, color: 'var(--c-area)', fmt: (v) => v.toFixed(2), onInput: (v) => { st.t = v; update(); } });
   let frame = 0;
   const one = () => { const l = trainBatch(net, cen, S, rng); st.steps++; st.smooth = st.smooth ? 0.97 * st.smooth + 0.03 * l : l; if (st.steps % 10 === 0) { st.hist.push(st.smooth); if (st.hist.length > 300) st.hist = st.hist.filter((_, i) => i % 2 === 0); } };
-  const lp = loop(() => { const t0 = performance.now(), n = Math.round(6 * tr.speed.get()); for (let i = 0; i < n && performance.now() - t0 < 14; i++) one(); if (++frame % 20 === 0 && st.samples) draw(); update(); });
+  const lp = loop(() => { const t0 = performance.now(), n = Math.round(12 * tr.speed.get()); for (let i = 0; i < n && performance.now() - t0 < 24; i++) one(); if (++frame % 20 === 0 && st.samples) draw(); update(); });
   const tr = transport(g0, {
     onPlay: (on) => { if (on) lp.start(); else { lp.stop(); draw(); update(); } },
     onStep: () => { for (let i = 0; i < 10; i++) one(); draw(); update(); },
@@ -59,7 +59,7 @@ export function tabTrain(ctx) {
   toggle(g1, { label: 'Formula', checked: true, onChange: (v) => { st.eq = v; update(); } });
   const ro = readouts(g1, [{ key: 'n', label: 'training steps' }, { key: 'l', label: 'loss' }, { key: 'w', label: 'weights to learn' }]);
   const nt = document.createElement('p'); nt.style.cssText = 'color:var(--ink-2);font-size:13px;line-height:1.45;margin:4px 0 0'; g1.append(nt);
-  nt.textContent = 'Press play. The network only ever sees noisy points and is asked “what noise was added?”. Its orange arrows slowly line up with the exact green ones, and the violet samples it makes settle onto the data.';
+  nt.textContent = 'Press play. The network only ever sees noisy points and is asked “what noise was added?”. Its orange arrows line up with the exact green ones within seconds. The violet samples it makes take longer: give it half a minute or so to settle onto the data.';
   function update() {
     ro.set('n', String(st.steps)); ro.set('l', st.steps ? fmtNum(st.smooth, 3) : '–'); ro.set('w', String(net.W.reduce((s, w, k) => s + w.length + net.b[k].length, 0)));
     overlay.hidden = !st.eq; plot.redraw();

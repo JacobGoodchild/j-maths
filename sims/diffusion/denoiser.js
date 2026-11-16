@@ -45,11 +45,12 @@ export const epsHat = (net, x1, x2, t) => mlpForward(net, feats(x1, x2, t));
 /**
  * One training step on a batch: pick a clean point x0, a time t and noise eps, make x_t = sqrt(abar) x0 + sqrt(1 - abar) eps,
  * and ask the network for eps. Loss = |eps - eps_hat|^2. Returns the mean loss.
+ * pw > 1 picks small times more often (t = u^pw); tried, no clear gain, so the default is uniform.
  */
-export function trainBatch(net, centres, s, rng, B = 128, lr = 2e-3) {
+export function trainBatch(net, centres, s, rng, B = 128, lr = 2e-3, pw = 1) {
   const K = centres.length / 2, d = new Float64Array(2); let tot = 0;
   for (let q = 0; q < B; q++) {
-    const k = rng.int(K), t = 0.01 + 0.99 * rng.random(), a = alphaBar(t), ra = Math.sqrt(a), rn = Math.sqrt(1 - a), e1 = rng.normal(), e2 = rng.normal();
+    const k = rng.int(K), t = 0.01 + 0.99 * rng.random() ** pw, a = alphaBar(t), ra = Math.sqrt(a), rn = Math.sqrt(1 - a), e1 = rng.normal(), e2 = rng.normal();
     const o = epsHat(net, ra * (centres[2 * k] + s * rng.normal()) + rn * e1, ra * (centres[2 * k + 1] + s * rng.normal()) + rn * e2, t);
     d[0] = 2 * (o[0] - e1); d[1] = 2 * (o[1] - e2); tot += (o[0] - e1) ** 2 + (o[1] - e2) ** 2;
     mlpBackward(net, d);
