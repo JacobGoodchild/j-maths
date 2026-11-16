@@ -11,3 +11,5 @@ SCRIPT=tools/preview-newton.mjs node tools/previews.mjs newton-raphson newton
 SCRIPT=tools/preview-volumes.mjs node tools/previews.mjs volumes solid
 SCRIPT=tools/preview-complex.mjs node tools/previews.mjs complex arithmetic
 SCRIPT=tools/preview-diffeq.mjs node tools/previews.mjs diffeq slope-field
+SCRIPT=tools/preview-neural-net.mjs node tools/previews.mjs neural-net flow
+SCRIPT=tools/preview-diffusion.mjs node tools/previews.mjs diffusion space
